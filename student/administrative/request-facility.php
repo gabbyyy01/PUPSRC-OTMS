@@ -17,10 +17,10 @@
         <div class="loading-spinner"></div>
         <p class="loading-text display-3 pt-3">Getting things ready...</p>
     </div>
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
     <script src="../../node_modules/jquery/dist/jquery.min.js"></script>
     <script src="../../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="../../node_modules/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
     <div class="wrapper">
@@ -60,12 +60,12 @@
                 $_SESSION['success'] = true;
                 // header("Refresh:0");
                 
-                // Update the facility availability to "Unavailable" after successful request
-                $updateQuery = "UPDATE facility SET availability = 'Unavailable' WHERE facility_id = ?";
-                $updateStmt = $connection->prepare($updateQuery);
-                $updateStmt->bind_param("i", $facilityID);
-                $updateStmt->execute();
-                $updateStmt->close();
+                // // Update the facility availability to "Unavailable" after successful request
+                // $updateQuery = "UPDATE facility SET availability = 'Unavailable' WHERE facility_id = ?";
+                // $updateStmt = $connection->prepare($updateQuery);
+                // $updateStmt->bind_param("i", $facilityID);
+                // $updateStmt->execute();
+                // $updateStmt->close();
                 
                 // Add the request details to the session
                 $_SESSION['appointment_details'] = [
@@ -99,7 +99,7 @@
 
             echo generateBreadcrumb($breadcrumbItems, true);
             ?>
-        <div class="container-fluid text-center p-4">
+        <div class="container-fluid text-center mt-4 p-4">
             <h1>Facility Appointment</h1>
         </div>
         <div class="container-fluid">
@@ -157,7 +157,7 @@
                                 <label for="contactNumber" class="form-label">Contact Number</label>
                                 <input type="tel" class="form-control" id="contactNumber" name="contactNumber" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" placeholder="Example: 0123-456-7890" maxlength="13">
                             </div> -->
-                            <div class="form-group col-12">
+                            <div class="form-group required col-12">
                                 
                                 <label for="email" class="form-label">Email Address</label>
                                 <input type="email" class="form-control" id="email" name="email" value = "<?php echo $userData[0]['email'] ?>" maxlength="50">
@@ -287,7 +287,6 @@
                                     <option value="15:00:00">3:00 PM</option>
                                     <option value="15:30:00">3:30 PM</option>
                                     <option value="16:00:00">4:00 PM</option>
-                                    <option value="16:30:00">4:30 PM</option>
                                     <option value="17:00:00">5:00 PM</option>
                                     <option value="17:30:00">5:30 PM</option>
                                     <option value="18:00:00">6:00 PM</option>
@@ -346,9 +345,13 @@
                                         <h5 class="modal-title" id="successModalLabel">Success</h5>
                                     </div>
                                     <div class="modal-body">
-                                        <p>Your appointment request has been submitted successfully!</p>
-                                        <p>You can check the status of your appointment request on the <b>My Transactions</b> page.</p>
-                                        <p><b>You must print this letter and submit it to the Administrative Office before your appointment.</b></p>
+                                        <p>Your appointment has been submitted successfully!</p>
+                                        <h5>What should I do next?</h5>
+                                        <ol>
+                                            <li>Please download the letter needed for the appointment (Refer to the <b>Help</b> page).</li>
+                                            <li>Proceed to the <b>Student Services</b> office (Room 210) to submit the requirements.</li>
+                                            <li>Wait for the request to be approved by constantly checking its status on the <b>My Transactions</b> page.</li>
+                                        </ol>
                                         <button type="button" class="btn btn-primary" onclick="redirectToAnotherPage()">Show Letter</button>
                                     </div>
                                     <div class="modal-footer">
@@ -358,7 +361,7 @@
                             </div>
                         </div>
                         </form>
-                        
+ 
                     </div>
                 </div>
             </div>
@@ -544,14 +547,14 @@
                     window.location.href = "view-facility.php";
                 }
                 function redirectToAnotherPage() {
-                    var url = "http://localhost/student/administrative/generate-letter.php";
+                    var url = "/student/administrative/generate-letter.php";
                     window.open(url, "_blank"); 
                 }
     </script>
 
 
     <!-- custom calendar where sundays are disabled -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="../../node_modules/flatpickr/dist/flatpickr.min.js"></script>
     <script>
         var disableSundays = function(date) {
         // Disable date on Sundays

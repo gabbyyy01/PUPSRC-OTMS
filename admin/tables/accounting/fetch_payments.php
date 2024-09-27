@@ -6,7 +6,7 @@ session_start();
 // Retrieve the page number from the AJAX request
 $page = isset($_POST['page']) ? $_POST['page'] : 1;
 
-// Define the number of records per page
+// Define the numeber of records per page
 $recordsPerPage = 20;
 
 // Calculate the starting record for the requested page
@@ -19,9 +19,9 @@ $order = isset($_POST['order']) ? $_POST['order'] : 'asc';
 
 // Retrieve the document requests
 $paymentsQuery = "SELECT payment_id, CONCAT(DATE_FORMAT(FROM_UNIXTIME(SUBSTRING(payment_id, 4)), '%c/%e/%Y, %h:%i:%s %p')) AS formatted_payment_id, firstName, lastName, middleName,
-                        documentType, referenceNumber, amount, image_url, transaction_date
+                        documentType, referenceNumber, course, amount, image_url, transaction_date, studentNumber, status
                         FROM student_info
-                        WHERE documentType != 'Certified True Copy'";
+                        WHERE documentType != 'Hotdog'";
                         
 
 if (!empty($searchTerm)) {
@@ -32,6 +32,7 @@ if (!empty($searchTerm)) {
                         OR documentType LIKE '%$searchTerm%'
                         OR referenceNumber LIKE '%$searchTerm%'
                         OR amount LIKE '%$searchTerm%'
+                        OR status LIKE '%$searchTerm%'
                         -- CONCAT name and request_description combinations
                         OR CONCAT(lastName, ', ', firstName, ' ', middleName, ' ', documentType) LIKE '%$searchTerm%'
                         OR CONCAT(firstName, ' ', middleName, ' ', lastName, ' ', documentType) LIKE '%$searchTerm%'
@@ -59,7 +60,29 @@ if ($result) {
     // Count the total number of records
     $totalRecordsQuery = "SELECT COUNT(*) AS total_records
                         FROM student_info
-                        WHERE documentType != 'Certified True Copy'";
+                        WHERE documentType != 'Hotdog'";
+    if (!empty($searchTerm)) {
+        $totalRecordsQuery .= " AND (payment_id LIKE '%$searchTerm%'
+                            OR firstName LIKE '%$searchTerm%'
+                            OR middleName LIKE '%$searchTerm%'
+                            OR lastName LIKE '%$searchTerm%'
+                            OR documentType LIKE '%$searchTerm%'
+                            OR referenceNumber LIKE '%$searchTerm%'
+                            OR amount LIKE '%$searchTerm%'
+                            OR status LIKE '%$searchTerm%'
+                            -- CONCAT name and request_description combinations
+                            OR CONCAT(lastName, ', ', firstName, ' ', middleName, ' ', documentType) LIKE '%$searchTerm%'
+                            OR CONCAT(firstName, ' ', middleName, ' ', lastName, ' ', documentType) LIKE '%$searchTerm%'
+                            OR CONCAT(firstName, ' ', lastName, ' ', documentType) LIKE '%$searchTerm%'
+                            OR CONCAT(firstName, ' ', documentType) LIKE '%$searchTerm%'
+                            OR CONCAT(lastName, ' ', documentType) LIKE '%$searchTerm%'
+                            OR CONCAT(lastName, ', ', firstName, ' ', documentType) LIKE '%$searchTerm%'
+                            OR CONCAT(lastName, ', ', firstName, ' ', middleName, ' ', documentType) LIKE '%$searchTerm%'
+                            OR CONCAT(DATE_FORMAT(transaction_date, '%c/%e/%Y, %h:%i:%s %p')) LIKE '%$searchTerm%'
+                            OR DATE_FORMAT(transaction_date, '%M') LIKE '%$searchTerm%')"; // Corrected closing parenthesis position
+    }
+    $totalRecordsQuery .= " ORDER BY $column $order
+    LIMIT $startingRecord, $recordsPerPage";
 
     $totalRecordsResult = mysqli_query($connection, $totalRecordsQuery);
     $totalRecordsRow = mysqli_fetch_assoc($totalRecordsResult);

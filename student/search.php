@@ -23,7 +23,7 @@ $result = $connection->query($sql);
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../style.css">
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
     <script src="../node_modules/jquery/dist/jquery.min.js"></script>
     <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </head>
@@ -61,7 +61,7 @@ $result = $connection->query($sql);
         while ($row = $result->fetch_assoc()) {
             // Display each search result
             echo '<div class="search-result card m-2">';
-            echo '<a href="'. $row['url'] .'">';
+            echo '<a href="/student/'. $row['url'] .'">';
             echo '<div class="card-header">'. highlightText($row['office_name'], $query) .'</div>';
             echo '<div class="card-body">';
             echo '<h5 class="card-title">' . highlightText($row['service_name'], $query) . '</h3>';

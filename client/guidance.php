@@ -17,7 +17,7 @@
         <div class="loading-spinner"></div>
         <p class="loading-text display-3 pt-3">Getting things ready...</p>
     </div>
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
     <script src="../node_modules/jquery/dist/jquery.min.js"></script>
     <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </head>
@@ -29,11 +29,11 @@
             include "../breadcrumb.php";
         ?>
         <div class="container-fluid guidancebanner header">
-            <a href="guidance/help.php" class="header-btn btn btn-primary position-absolute p-3 m-2 bottom-0 start-0">
+            <a href="guidance/help.php" class="header-btn btn btn-primary position-absolute p-3 m-2 bottom-0 start-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Check FAQs or submit a feedback">
                 <i class="fa-regular fa-circle-question"></i>
                 Help
             </a>
-            <a href="transactions.php" class="header-btn btn btn-primary position-absolute p-3 m-2 bottom-0 end-0">Transactions</a>
+            <a href="transactions.php" class="header-btn btn btn-primary position-absolute p-3 m-2 bottom-0 end-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Check your document requests/scheduled appointments and their statuses">Transactions</a>
             <?php
             $breadcrumbItems = [
                 ['text' => 'Guidance Office', 'active' => true],
@@ -45,11 +45,11 @@
             <p class="header-text text-center text-light">Choose from one of the services below to get started</p>
         </div>
         <div class="container-fluid p-2 d-flex flex-wrap flex-column justify-content-center gap-2 text-center">
-            <a href="guidance/good_morals.php" class="btn btn-primary d-block text-decoration-none bg-maroon text-light p-4 rounded-0">
+            <a href="guidance/good_morals.php" class="btn btn-primary d-block text-decoration-none bg-maroon text-light p-4 rounded">
             <h2>Request Good Moral Certificate</h2>
                 <p>Request for a good moral certificate for requirement purposes</p>
             </a>
-            <a href="guidance/clearance.php" class="btn btn-primary d-block text-decoration-none bg-maroon text-light p-4 rounded-0">
+            <a href="guidance/clearance.php" class="btn btn-primary d-block text-decoration-none bg-maroon text-light p-4 rounded">
             <h2>Request Clearance</h2>
                 <p>Request and check the status of your academic clearance</p>
             </a>
@@ -58,6 +58,7 @@
     </div>
     <?php include '../footer.php'; ?>
     <script src="../loading.js"></script>
+    <script src="../tooltips.js"></script>
     <script>
         $(document).ready(function(){
             $('.dropdown-submenu a.dropdown-toggle').on("click", function(e){

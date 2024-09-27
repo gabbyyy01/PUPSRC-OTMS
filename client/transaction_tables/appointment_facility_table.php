@@ -35,6 +35,11 @@
                     Status
                     <i class="sort-icon fa-solid fa-caret-down"></i>
                 </th>
+                <th class="text-center appointment-facility-attachment-header sortable-header" data-column="9" scope="letter_content" data-order="asc">
+                    Attachment
+                    <i class="sort-icon fa-solid fa-caret-down"></i>
+                </th>
+                <th class="text-center"></th>
                 <th class="text-center"></th>
                 <!-- <th class="text-center doc-request-status-header" scope="col">
                     Generate Slip
@@ -56,6 +61,32 @@
         </div>
     </nav>
 </div>
+<div class="d-flex">
+    <div id="reminder-container" class="alert alert-info mt-3" role="alert">
+        <h4 class="alert-heading">
+            <i class="fa-solid fa-circle-info"></i> Reminder
+        </h4>
+        <p class="mb-0">Always check your transaction status to follow instructions.</p>
+        <p class="mb-0">You can delete or edit transactions during <span
+            class="badge rounded-pill bg-dark">Pending</span> status.</p>
+        <p class="mb-0"><small><span class="badge rounded-pill bg-dark">Pending</span> - The requester should settle
+            the deficiency/ies to necessary office.</small></p>
+        <p class="mb-0"><small><span class="badge rounded-pill bg-danger">Rejected</span> - The request is rejected
+            by the admin.</small></p>
+        <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: orange;">For
+                receiving</span> - The request is currently in Receiving window and waiting for submission of
+            requirements.</small></p>
+        <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: blue;">For
+                evaluation</span> - Evaluation and Processing of records and required documents for releasing.</small>
+        </p>
+        <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: DodgerBlue;">Ready for
+                pickup</span> - The requested document/s is/are already available for pickup at the releasing section
+            of student records.</small></p>
+        <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: green;">Released</span> -
+            The requested document/s was/were claimed.</small></p>
+        <!-- <p class="mb-0">You will find answers to the questions we get asked the most about requesting for academic documents through <a href="FAQ.php">FAQs</a>.</p> -->
+    </div>
+</div>
 <!-- View edit modal -->
 <div id="viewEditModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="viewEditModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -73,7 +104,50 @@
     </div>
 </div>
 <!-- End of view edit modal -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<!-- Reason Modal -->
+<div id="reasonModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="reasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reasonModalLabel">Reason for Rejection</h5>
+            </div>
+            <div class="modal-body">
+                <!-- Reason content will be populated here dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Reason Modal -->
+
+<!-- Modal for cancellation confirmation -->
+<div class="modal fade" id="cancelModal" tabindex="-1" role="dialog" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelModalLabel">Cancel Appointment</h5>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this appointment?</p>
+                <form id="createReasonForm">
+                    <div class="mb-3">
+                        <label for="cancellationReason" class="form-label">Reason for cancellation:</label>
+                        <textarea class="form-control" id="cancellationReason" name="cancellationReason" rows="3" maxlength="255"></textarea>
+                        <small id="cancellationReasonHelp" class="form-text text-muted">Maximum length: 255 characters.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="confirmCancelBtn">Confirm Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--End of Cancel Modal -->
+<script src="../../node_modules/flatpickr/dist/flatpickr.min.js"></script>
 <script>
     function getStatusBadgeClass(status) {
         switch (status) {
@@ -87,6 +161,8 @@
                 return 'bg-primary';
             case 'Ready for Pickup':
                 return 'bg-info';
+            case 'Cancelled':
+                return 'bg-secondary';
             default:
                 return 'bg-dark';
         }
@@ -469,6 +545,46 @@
         });
     }
 
+    // Event listener for view reason buttons
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('view-reason')) {
+            var requestId = event.target.getAttribute('data-request-id');
+            populateReasonModal(requestId);
+        }
+    });
+
+
+    // Function to populate the reason modal with the reason data
+    function populateReasonModal(requestId) {
+        $.ajax({
+            url: 'transaction_tables/get_administrative_reason_facility.php', // Replace with the actual URL to fetch reason from the database
+            method: 'POST',
+            data: { request_id: requestId },
+            success: function(response) {
+                var reasonData = JSON.parse(response); // Parse the JSON response
+                var reason = reasonData.admin_reason; // Extract the reason text
+                console.log(reason);
+                console.log('Reason Shows successfully');
+                
+                var modalTitle = document.getElementById('reasonModalLabel');
+                var modalBody = document.querySelector('#reasonModal .modal-body');
+
+                modalTitle.innerText = 'Reason for Rejection';
+
+                if (reason !== null) {
+                    modalBody.innerHTML = '<p style= "overflow-wrap: break-word;">' + reason + '</p>';
+                } else {
+                    modalBody.innerHTML = '<p>No reason provided yet.</p>';
+                }
+
+                $("#reasonModal").modal("show");
+            },
+            error: function() {
+                console.log('Error occurred while fetching reason.');
+            }
+        });
+    }
+
     // Function to update the request using AJAX
     function updateRequest(editId) {
         var form = document.getElementById('editForm');
@@ -555,14 +671,31 @@
                             '<td class="text-center">' +
                             '<span class="badge rounded-pill appointment-facility-status-cell ' + getStatusBadgeClass(appointmentFacility.status_name) + '">' + appointmentFacility.status_name + '</span>' +
                             '</td>' +
-                            '<td><button href="#" class="btn btn-primary btn-sm edit-request" data-request-id="' + appointmentFacility.appointment_id + '">Edit <i class="fa-solid fa-pen-to-square"></i></button></td>' +
-                            '</td>' +
+                            '<td class="text-center"><a href="' + (appointmentFacility.letter_content ? "../../../client/administrative/appointment-letter/" + appointmentFacility.letter_content : "") + '" target="_blank">' + (appointmentFacility.letter_content ? "View Letter" : "") + '</a></td>' + 
+                            '<td class="text-center">';
 
+                            if (appointmentFacility.status_name === "Pending") {
+                                row += '<div class="btn-container" style="display: flex;">';
+                                
+                                // Edit Button
+                                row += '<div style="flex: 1;">';
+                                row += '<button href="#" class="btn btn-primary btn-sm edit-request" data-request-id="' + appointmentFacility.appointment_id + '"><i class="fa-solid fa-pen-to-square"></i> Edit </button>';
+                                row += '</div>';
+                                
+                                // Cancel Button
+                                row += '<div style="flex: 1; margin-left: 5px;">';
+                                row += '<button class="btn btn-primary btn-sm cancel-request" data-request-id="' + appointmentFacility.appointment_id + '"><i class="fa-solid fa-times"></i> Cancel </button>';
+                                row += '</div>';
+                                
+                                row += '</div>';
+                            } else if(appointmentFacility.status_name === "Rejected") {
+                                row += '<a href="#" class="btn btn-primary btn-sm view-reason pe-auto" data-status="' + appointmentFacility.status_name + '" data-request-id="' +  appointmentFacility.appointment_id + '"><i class="fa-solid fa-eye"></i> Reason </a>';
+                            }
                             '</tr>';
                         tableBody.innerHTML += row;
                     }
                 }  else {
-                    var noRecordsRow = '<tr><td class="text-center table-light p-4" colspan="7">No Transactions</td></tr>';
+                    var noRecordsRow = '<tr><td class="text-center table-light p-4" colspan="10">No Transactions</td></tr>';
                     tableBody.innerHTML = noRecordsRow;
                 }
 
@@ -582,6 +715,8 @@
                 addDeleteButtonListeners();
                 // Add event listeners for edit buttons
                 updateEditButtonStatus();
+                //Checks for request status and hides cancelled button
+                updateCancelButtonStatus();
             }
         });
     }
@@ -609,6 +744,74 @@
             populateEditModal(editId);
         }
     });
+
+        //Event Listener for Cancel Button
+        document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('cancel-request')) {
+            var requestId = event.target.getAttribute('data-request-id');
+            openCancelModal(requestId);
+        }
+    });
+
+    function openCancelModal(requestId) {
+        // Set the request ID in the modal data attribute
+        $('#cancelModal').data('request-id', requestId);
+        // Open the modal
+        $('#cancelModal').modal('show');
+    }
+    
+    // Event Listener for Confirm Cancel Button
+    document.getElementById('confirmCancelBtn').addEventListener('click', cancelRequest);
+
+
+    //Function for Cancel button
+    function cancelRequest() {
+        console.log('cancelRequest function called');
+    var requestId = $('#cancelModal').data('request-id');
+    var cancellationReason = $('#cancellationReason').val();
+
+    // Make an AJAX request to cancel the equipment request
+    $.ajax({
+        url: 'transaction_tables/cancel_facility.php',
+        method: 'POST',
+        data: { request_id: requestId, reason: cancellationReason },
+        success: function(response) {
+            console.log('Request canceled successfully');
+            // Close the modal
+            $('#cancelModal').modal('hide');
+            handlePagination(1, '');
+        },
+        error: function(error) {
+            console.error('Error canceling request:', error.responseText);
+        }
+    });
+}
+
+    //Disables Cancel Button for certain statuses
+    function updateCancelButtonStatus() {
+    var cancelButtons = document.querySelectorAll('.cancel-request');
+
+    cancelButtons.forEach(function (button) {
+        var row = button.closest('tr');
+        var statusCell = row.querySelector('.appointment-facility-status-cell');
+        var status = statusCell.textContent.trim();
+
+        // Disable the Cancel button based on specific statuses
+        if (
+            status === 'For Receiving' ||
+            status === 'For Evaluation' ||
+            status === 'Ready for Pickup' ||
+            status === 'Released' ||
+            status === 'Rejected' ||
+            status === 'Approved' ||
+            status === 'Cancelled'
+        ) {
+            button.disabled = true;
+        } else {
+            button.disabled = false;
+        }
+    });
+    }
 
     // Function to toggle the sort icons
     function toggleSortIcons(header) {

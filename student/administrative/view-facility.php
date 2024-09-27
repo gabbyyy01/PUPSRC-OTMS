@@ -17,7 +17,7 @@
         <div class="loading-spinner"></div>
         <p class="loading-text display-3 pt-3">Getting things ready...</p>
     </div>
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
     <script src="../../node_modules/jquery/dist/jquery.min.js"></script>
     <script src="../../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </head>
@@ -43,7 +43,7 @@
             echo generateBreadcrumb($breadcrumbItems, true);
     ?>    
 
-    <div class="container-fluid text-center p-4">
+    <div class="container-fluid text-center mt-4 p-4">
         <h1>View Facility</h1>
     </div>
     <div class="container-fluid">
@@ -66,7 +66,6 @@
                 <option value="First Floor" <?php if(isset($_POST['category']) && $_POST['category'] == 'First Floor') echo 'selected'; ?>>First Floor</option>
                 <option value="Second Floor" <?php if(isset($_POST['category']) && $_POST['category'] == 'Second Floor') echo 'selected'; ?>>Second Floor</option>
                 <option value="Third Floor" <?php if(isset($_POST['category']) && $_POST['category'] == 'Third Floor') echo 'selected'; ?>>Third Floor</option>
-                <option value="Fourth Floor" <?php if(isset($_POST['category']) && $_POST['category'] == 'Fourth Floor') echo 'selected'; ?>>Fourth Floor</option>
             </select>
             <button class="btn btn-primary" onclick="filterResults()">Filter</button>
         </div>

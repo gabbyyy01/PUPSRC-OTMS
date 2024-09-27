@@ -1,17 +1,3 @@
-// Retrieve the default transaction table from localStorage
-var defaultTable = localStorage.getItem('defaultTransactionTable');
-  
-// Set the initial value of the select dropdown based on the retrieved value
-$('#transactionTableSelect').val(defaultTable);
-
-// Change event listener for the select dropdown
-$('#transactionTableSelect').change(function() {
-  var selectedTable = $(this).val();
-  
-  // Store the selected table in localStorage
-  localStorage.setItem('defaultTransactionTable', selectedTable);
-});
-
 // Check if dark mode is enabled in localStorage
 var isDarkMode = localStorage.getItem('darkMode');
 if (isDarkMode === 'true') {
@@ -52,10 +38,13 @@ function enableDarkMode() {
     $('.modal-footer').addClass('bg-dark');
     $('.dropdown-menu').addClass('bg-dark');
     $('.dropdown-item').addClass('dark-mode');
+    $('.notification-item').addClass('dark-mode');
     $('.footer').addClass('bg-dark');
     $('.breadcrumb-item').removeClass('text-dark').addClass('text-light');
     $('.breadcrumb-separator').removeClass('text-dark').addClass('text-light');
     $('.breadcrumb-link').removeClass('text-dark').addClass('text-light');
+    $('.payment-summary').addClass('bg-dark');
+    $('.notification-item').addClass('text-light');
 
     // Store dark mode state in localStorage
     localStorage.setItem('darkMode', 'true');
@@ -85,10 +74,13 @@ function disableDarkMode() {
     $('.modal-footer').removeClass('bg-dark');
     $('.dropdown-menu').removeClass('bg-dark');
     $('.dropdown-item').removeClass('dark-mode');
+    $('.notification-item').removeClass('dark-mode');
     $('.footer').removeClass('bg-dark');
     $('.breadcrumb-item').addClass('text-dark');
     $('.breadcrumb-separator').addClass('text-dark');
     $('.breadcrumb-link').addClass('text-dark');
+    $('.payment-summary').removeClass('bg-dark');
+    $('.notification-item').removeClass('text-light');
 
     // Store dark mode state in localStorage
     localStorage.setItem('darkMode', 'false');

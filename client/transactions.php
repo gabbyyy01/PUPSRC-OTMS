@@ -17,10 +17,11 @@
         <div class="loading-spinner"></div>
         <p class="loading-text display-3 pt-3">Getting things ready...</p>
     </div>
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
+    <script src="../node_modules/@popperjs/core/dist/umd/popper.min.js"></script>
     <script src="../node_modules/jquery/dist/jquery.min.js"></script>
-    <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="../node_modules/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
     <div class="wrapper">
@@ -51,26 +52,11 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-xs-12">
-                    <div class="alert alert-info" role="alert">
-                        <h4 class="alert-heading">
-                        <i class="fa-solid fa-circle-info"></i> Reminder
-                        </h4>
-                        <p class="mb-0" >Always check your transaction status to follow instructions.</p>
-                        <p class="mb-0">You can delete or edit transactions during <span class="badge rounded-pill bg-dark">Pending</span> status.</p>
-                        <p class="mb-0"><small><span class="badge rounded-pill bg-dark">Pending</span> - The requester should settle the deficiency/ies to necessary office.</small></p>
-                        <p class="mb-0"><small><span class="badge rounded-pill bg-danger">Rejected</span> - The request is rejected by the admin.</small></p>
-                        <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: orange;">For receiving</span> - The request is currently in Receiving window and waiting for submission of requirements.</small></p>
-                        <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: blue;">For evaluation</span> - Evaluation and Processing of records and required documents for releasing.</small></p>
-                        <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: DodgerBlue;">Ready for pickup</span> - The requested document/s is/are already available for pickup at the releasing section of student records.</small></p>
-                        <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: green;">Released</span> - The requested document/s was/were claimed.</small></p>
-                        <!-- <p class="mb-0">You will find answers to the questions we get asked the most about requesting for academic documents through <a href="FAQ.php">FAQs</a>.</p> -->
-                    </div>
                     <div class="d-flex w-100 justify-content-between p-0">
                         <div class="d-flex p-2">
                             <form id="defaultTableValueSelect" class="d-flex input-group" action="transactions.php" method="post">
                                 <select id="transactionTableSelect" class="form-select" name="table-select">
                                     <option value="document_request" <?php if ($table === 'document_request') echo 'selected'; ?>>Document Requests</option>
-                                    <option value="payments" <?php if ($table === 'payments') echo 'selected'; ?>>Payments</option>
                                     <option value="request_equipment" <?php if ($table === 'request_equipment') echo 'selected'; ?>>Request of Equipment</option>
                                     <option value="appointment_facility" <?php if ($table === 'appointment_facility') echo 'selected'; ?>>Facility Appointment</option>
                                 </select>
@@ -78,9 +64,20 @@
                             </form>
                         </div>
                         <div class="d-flex justify-content-end p-2">
-                            <div class="input-group d-flex justify-content-end">
+                            <div class="input-group">
+                                <!-- <select class="form-select" name="status-filter" id="status-filter">
+
+                                </select> -->
+                                <button id="office-filter-btn" class="btn btn-outline-primary dropdown-toggle rounded-start" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+                                <div class="dropdown-menu" name="office-filter" id="office-filter" aria-labelledby="office-filter-btn">
+                                    <!-- Add default options here -->
+                                </div>
+                                <button id="status-filter-btn" class="btn btn-outline-primary dropdown-toggle rounded-start" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+                                <div class="dropdown-menu" name="status-filter" id="status-filter" aria-labelledby="status-filter-btn">
+                                    <!-- Add default options here -->
+                                </div>
                                 <input type="text" class="form-control" placeholder="Search..." id="search-input">
-                                <button class="btn btn-outline-primary" type="button" id="search-button"><i class="fas fa-search"></i></button>
+                                <button class="btn btn-outline-primary input-group-append" type="button" id="search-button"><i class="fas fa-search"></i></button>
                             </div>
                         </div>
                     </div>
@@ -92,8 +89,6 @@
                             // Load the requested table
                             if ($table === 'document_request') {
                                 include 'transaction_tables/document_request_table.php';
-                            } elseif ($table === 'payments') {
-                                include 'transaction_tables/payments_table.php';
                             } elseif ($table === 'request_equipment') {
                                 include 'transaction_tables/request_equipment_table.php';
                             } elseif ($table === 'appointment_facility') {
@@ -130,16 +125,109 @@
                 handlePagination(1, '', column, order);
             });
 
-            $('#search-button').on('click', function() {
-                var searchTerm = $('#search-input').val();
-                handlePagination(1, searchTerm);
-            });
+            // -------------------------- //
+            // If the search bar on your transaction table isn't functioning properly,
+            // just ask ChatGPT how to migrate the search/filtering code to your
+            // respective .php table file on this directory or just copy how I did it on document_request_table.php
+
+            // -- DON'T UNCOMMENT THIS -- //
+            // $('#search-button').on('click', function() {
+            //     var searchTerm = $('#search-input').val();
+            //     handlePagination(1, searchTerm);
+            // });
 
             // $('.dropdown-submenu a.dropdown-toggle').on("click", function(e){
             //     $(this).next('ul').toggle();
             //     e.stopPropagation();
             //     e.preventDefault();
             // });
+
+            var selectedStatus = '';
+            var selectedOffice = '';
+
+						// Update filter options based on the selected table
+						$('#office-filter-btn').on('click', function (e) {
+                            e.stopPropagation();
+                            var selectedTable = $('#transactionTableSelect').val();
+                            updateOfficeFilterOptions(selectedTable);
+                        });
+                        
+                        $('#status-filter-btn').on('click', function (e) {
+							e.stopPropagation();
+							var selectedTable = $('#transactionTableSelect').val();
+							updateStatusFilterOptions(selectedTable);
+						});
+
+						// Initialize filter options based on the initial selected table
+						var initialTable = $('#transactionTableSelect').val();
+						updateStatusFilterOptions(initialTable);
+                        updateOfficeFilterOptions(initialTable);
+
+                        function updateOfficeFilterOptions(selectedTable) {
+                            var officeFilterDropdown = $('#office-filter');
+                            officeFilterDropdown.empty();
+
+                            if (selectedTable === "document_request") {
+                                $('#office-filter-btn').css('display', 'black');
+                                $('#status-filter-btn').removeClass('rounded-start');
+                                officeFilterDropdown.append('<a class="dropdown-item" href="#">All Office</a>');
+                                officeFilterDropdown.append('<a class="dropdown-item" href="#">Registrar Office</a>');
+                                officeFilterDropdown.append('<a class="dropdown-item" href="#">Guidance Office</a>');
+                            } else {
+                                $('#office-filter-btn').css('display', 'none');
+                                $('#status-filter-btn').addClass('rounded-start');
+                            }
+
+                            // Update the dropdown button text based on the selected option
+                            $('#office-filter-btn').text(selectedOffice || 'All Office');
+                        }
+
+						function updateStatusFilterOptions(selectedTable) {
+							// Get the status filter dropdown element
+							var statusFilterDropdown = $('#status-filter');
+
+							// Clear existing options
+							statusFilterDropdown.empty();
+
+							// Add default option
+							statusFilterDropdown.append('<a class="dropdown-item" href="#">All Status</a>');
+
+							// Add options based on the selected table
+							switch (selectedTable) {
+								case 'document_request':
+									statusFilterDropdown.append('<a class="dropdown-item" href="#">Pending</a>');
+									statusFilterDropdown.append('<a class="dropdown-item" href="#">Cancelled</a>');
+									statusFilterDropdown.append('<a class="dropdown-item" href="#">For receiving</a>');
+									statusFilterDropdown.append('<a class="dropdown-item" href="#">For evaluation</a>');
+									statusFilterDropdown.append('<a class="dropdown-item" href="#">Ready for pickup</a>');
+									statusFilterDropdown.append('<a class="dropdown-item" href="#">Released</a>');
+									statusFilterDropdown.append('<a class="dropdown-item" href="#">Rejected</a>');
+									break;
+
+								// Add options for other tables as needed
+								// TODO: All devs must add their respective transaction statuses on this switch statement.
+
+								default:
+									statusFilterDropdown.empty();
+									break;
+							}
+
+							// Trigger change event to update the filter value if needed
+							statusFilterDropdown.trigger('change');
+							// Update the dropdown button text based on the selected option
+							$('#status-filter-btn').text(selectedStatus || 'All Status');
+						}
+
+						// Update the dropdown button text when an option is clicked
+						$('#status-filter').on('click', '.dropdown-item', function () {
+							selectedStatus = $(this).text();
+							$('#status-filter-btn').text($(this).text());
+						});
+
+                        $('#office-filter').on('click', '.dropdown-item', function () {
+                            selectedOffice = $(this).text();
+                            $('#office-filter-btn').text($(this).text());
+                        });
         });
 
         function checkViewport() {

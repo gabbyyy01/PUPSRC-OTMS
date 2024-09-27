@@ -17,12 +17,12 @@
         <div class="loading-spinner"></div>
         <p class="loading-text display-3 pt-3">Getting things ready...</p>
     </div>
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
     <script src="../node_modules/jquery/dist/jquery.min.js"></script>
     <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap-switch-button@1.1.0/css/bootstrap-switch-button.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap-switch-button@1.1.0/dist/bootstrap-switch-button.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="../node_modules/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
     <div class="wrapper">
@@ -33,7 +33,7 @@
         include "../breadcrumb.php";
 
         $query = "SELECT last_name, first_name, middle_name, extension_name, contact_no, email, birth_date FROM users WHERE user_id = ?";
-        $userDetailsQuery = "SELECT sex, home_address, province, city, barangay, zip_code FROM user_details WHERE user_id = ?";
+        $userDetailsQuery = "SELECT sex, home_address, province, city, barangay, zip_code, avatar_url FROM user_details WHERE user_id = ?";
 
         // Fetch user table
         $stmt = $connection->prepare($query);
@@ -73,8 +73,16 @@
                                 <button id="editButton" data-bs-toggle="modal" data-bs-target="#editModal" class="btn btn-primary position-absolute end-0 mx-5 w-auto"><i class="fa-solid fa-pen-to-square"></i></button>
                                 <h4 class="pb-3 text-md-start text-center">Account Details</h4>
                                 <div class="col-md-3">
-                                    <div class="d-flex align-items-center justify-content-center user-avatar-container pb-4">
-                                        <img src="../assets/avatar.png" alt="User Avatar" class="img-fluid rounded-4 user-avatar">
+                                    <div class="d-flex align-items-center justify-content-center user-avatar-container mb-4" id="avatar-container">
+                                        <div class="avatar-wrapper">
+                                            <div class="avatar-overlay">
+                                                <span class="overlay-text">Upload Profile Picture</span>
+                                                <input type="file" id="profile-picture" name="profile_picture" class="d-none" accept="image/*">
+                                            </div>
+                                            <a href="#" target="_blank">
+                                                <img src="<?php echo is_null($userDetailsData[0]['avatar_url']) ? "../assets/avatar.png" : "/" . $userDetailsData[0]['avatar_url']; ?>" alt="User Avatar" class="img-fluid rounded-4 user-avatar">
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-9 px-3">
@@ -124,17 +132,6 @@
                     <div class="card mb-4 px-5 py-5 shadow-lg">
                         <h4 class="pb-3 text-md-start text-center">Settings</h4>
                         <div class="m-0 pt-3">
-                            <p class="fs-6 m-0 my-1"><strong>Default Transactions table</strong></p>
-                            <select id="transactionTableSelect" class="form-select-sm">
-                                <option value="document_request">Document Requests</option>
-                                <option value="scheduled_appointments">Counseling Schedules</option>
-                                <option value="payments">Payments</option>
-                                <option value="request_equipment">Request of Equipment</option>
-                                <option value="appointment_facility">Facility Appointment</option>
-                            </select>
-                        </div>
-                        <hr />
-                        <div class="m-0 pt-3">
                             <p class="fs-6 m-0 my-1"><strong>Enable Dark Mode</strong></p>
                             <input id="darkModeSwitch" type="checkbox" data-toggle="switchbutton" data-width="75">
                             <div id="switchValue" class="pt-3"></div>
@@ -144,12 +141,14 @@
                             <input id="disabledFieldsOrNot" type="checkbox" data-toggle="switchbutton" data-width="75">
                             <div id="disabledSwitchValue" class="pt-3"></div>
                         </div>
+                        <div class="m-0 pb-3">
+                            <button id="delete-transactions-btn" class="btn btn-outline-primary">Delete All Rejected Transactions</button>
+                        </div>
                         <hr />
                         <div class="m-0">
                             <h5 class="mb-4">Dangerous Settings</h5>
                             <div class="d-flex align-items-center gap-4">
-                                <a href="#" class="btn btn-primary">Delete Account</a>
-                                <a href="#" class="btn btn-primary">Delete All Transactions</a>
+                                <button id="delete-account-btn" class="btn btn-primary">Delete Account</button>
                             </div>
                         </div>
                     </div>
@@ -169,17 +168,15 @@
                         <form id="editForm">
                             <div class="mb-3 form-group">
                                 <label for="editLastName" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="editLastName" name="editLastName" value="<?php echo $userData[0]['last_name']; ?>" required>
-                                <div class="invalid-feedback">Please enter your last name.</div>
+                                <input type="text" class="form-control" id="editLastName" name="editLastName" value="<?php echo $userData[0]['last_name']; ?>" maxlength="100" size="100" autocomplete="on" class="form-control" required>
                             </div>
                             <div class="mb-3 form-group">
                                 <label for="editFirstName" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="editFirstName" name="editFirstName" value="<?php echo $userData[0]['first_name']; ?>" required>
-                                <div class="invalid-feedback">Please enter your first name.</div>
+                                <input type="text" class="form-control" id="editFirstName" name="editFirstName" value="<?php echo $userData[0]['first_name']; ?>" maxlength="100" size="100" autocomplete="on" class="form-control" required>
                             </div>
                             <div class="mb-3 form-group">
                                 <label for="editMiddleName" class="form-label">Middle Name</label>
-                                <input type="text" class="form-control" id="editMiddleName" name="editMiddleName" value="<?php echo $userData[0]['middle_name']; ?>">
+                                <input type="text" class="form-control" id="editMiddleName" name="editMiddleName" value="<?php echo $userData[0]['middle_name']; ?>" maxlength="100" size="100" autocomplete="on" class="form-control">
                             </div>
                             <div class="mb-3 form-group">
                                 <label for="editExtensionName" class="form-label">Extension Name</label>
@@ -210,16 +207,130 @@
                 </div>
             </div>
         </div>
+        <!-- Delete Transactions success Modal -->
+        <div class="modal fade" id="deleteTransactionSuccessModal" tabindex="-1" aria-labelledby="deleteTransactionSuccessModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteTransactionSuccessModalLabel">Success</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Transactions deleted successfully.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End of Delete Transactions success Modal -->
+        <!-- Delete Transactions failed Modal -->
+        <div class="modal fade" id="deleteTransactionFailedModal" tabindex="-1" aria-labelledby="deleteTransactionFailedModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteTransactionFailedModalLabel">Error</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Unable to delete transactions. Please try again later.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End of Delete Transactions failed Modal -->
+        <!-- Delete Account confirm Modal -->
+        <div class="modal fade" id="deleteAccountConfirmModal" tabindex="-1" aria-labelledby="deleteAccountConfirmModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteAccountConfirmModalLabel">Confirm Delete</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h5>Are you sure you want to delete your account?</h5>
+                        <p>To help confirm that you actually want to delete your account, please enter your account's email address:</p>
+                        <div class="mb-3">
+                          <label for="emailConfirm" class="form-label">Confirm email:</label>
+                          <input type="email"
+                            class="form-control" name="emailConfirm" id="emailConfirm" aria-describedby="emailConfirmHelp" placeholder="">
+                          <small id="emailConfirmHelp" class="form-text text-muted"></small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel</button>
+                        <button id="confirm-delete-acc-btn" type="button" class="btn disabled" disabled>Delete Account</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End of Delete Account confirm Modal -->
+        <!-- Delete Account failed Modal -->
+        <div class="modal fade" id="deleteAccountFailedModal" tabindex="-1" aria-labelledby="deleteAccountFailedModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteAccountFailedModalLabel">Error</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Unable to delete your account. Please try again.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End of Delete Account failed Modal -->
         <div class="push"></div>
     </div>
     <?php include '../footer.php'; ?>
     <script src="../loading.js"></script>
     <script src="../saved_settings.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="../node_modules/flatpickr/dist/flatpickr.min.js"></script>
     <script>
         $(document).ready(function() {
             document.getElementById('darkModeSwitch').switchButton();
             document.getElementById('disabledFieldsOrNot').switchButton();
+
+            // Variables for the change profile picture feature
+            const avatarContainer = document.getElementById("avatar-container");
+            const profilePictureInput = document.getElementById("profile-picture");
+
+            // Listen for changes in the file input
+            profilePictureInput.addEventListener("change", function(event) {
+                const selectedFile = event.target.files[0];
+
+                if (selectedFile) {
+                    const formData = new FormData();
+                    formData.append("profile_picture", selectedFile);
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/upload_profile_picture.php",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function(response) {
+                            console.log("Image uploaded successfully");
+                            location.reload();
+                        },
+                        error: function(error) {
+                            console.error("Error uploading image:", error);
+                        }
+                    });
+                }
+            });
+
+            // Open the file dialog when the avatar container is clicked
+            avatarContainer.addEventListener("click", function() {
+                profilePictureInput.click();
+            });
 
             // Hide additional details initially
             $('#birthDateDetails').hide();
@@ -264,13 +375,25 @@
             // Add event listeners for input validation
             $('#editFirstName').on('input', function() {
                 var input = $(this).val();
-                var isValid = input.trim() !== '';
+                var isValid = input.trim() !== '' && /^(?:[a-zA-ZÑñ]+\s?[\-\.']?\s?)*$/.test(input);
                 $(this).toggleClass('is-invalid', !isValid);
             });
 
             $('#editLastName').on('input', function() {
                 var input = $(this).val();
-                var isValid = input.trim() !== '';
+                var isValid = input.trim() !== '' && /^(?:[a-zA-ZÑñ]+\s?[\-\.']?\s?)*$/.test(input);
+                $(this).toggleClass('is-invalid', !isValid);
+            });
+
+            $('#editMiddleName').on('input', function() {
+                var input = $(this).val();
+                var isValid = input.trim() == '' || /^(?:[a-zA-ZÑñ]+\s?[\-\.']?\s?)*$/.test(input);
+                $(this).toggleClass('is-invalid', !isValid);
+            });
+
+            $('#editExtensionName').on('input', function() {
+                var input = $(this).val();
+                var isValid = input.trim() == '' || /^(?:[a-zA-ZÑñ]+\s?[\-\.']?\s?)*$/.test(input);
                 $(this).toggleClass('is-invalid', !isValid);
             });
 
@@ -292,13 +415,15 @@
                 // Validate the form inputs before submitting
                 var isValidFirstName = $('#editFirstName').val();
                 var isValidLastName = $('#editLastName').val();
+                var isValidMiddleName = $('#editMiddleName').val();
+                var isValidExtensionName = $('#editExtensionName').val();
                 var contactNumber = $('#editContactNumber').val();
                 var birthDate = $('#editBirthDate').val();
 
                 var isValidContactNumber = validateContactNumber(contactNumber);
                 $('#editContactNumber').toggleClass('is-invalid', !isValidContactNumber);
 
-                if (!isValidContactNumber || isValidFirstName.trim() == '' || isValidLastName.trim() == '' || birthDate.trim() == '') {
+                if (!isValidContactNumber || !(isValidFirstName.trim() !== '' && /^(?:[a-zA-ZÑñ]+\s?[\-\.']?\s?)*$/.test(isValidFirstName)) || !(isValidLastName.trim() !== '' && /^(?:[a-zA-ZÑñ]+\s?[\-\.']?\s?)*$/.test(isValidLastName)) || !(isValidMiddleName.trim() == '' || /^(?:[a-zA-ZÑñ]+\s?[\-\.']?\s?)*$/.test(isValidMiddleName)) || !(isValidExtensionName.trim() == '' || /^(?:[a-zA-ZÑñ]+\s?[\-\.']?\s?)*$/.test(isValidExtensionName)) || birthDate.trim() == '') {
                     return;
                 }
 
@@ -315,6 +440,62 @@
                 });
 
                 location.reload(0);
+            });
+        });
+
+        $('#delete-transactions-btn').click(function() {
+            $.ajax({
+                type: 'POST',
+                url: '../delete_transactions.php',
+                success: function(response) {
+                    console.log(response);
+                    $('#deleteTransactionSuccessModal').modal('show');
+                },
+                error: function(error) {
+                    console.log(error);
+                    $('#deleteTransactionFailedModal').modal('show');
+                }
+            });
+        });
+
+        $('#delete-account-btn').click(function() {
+            $('#deleteAccountConfirmModal').modal('show');
+        });
+
+        var userEmailAddress = "<?php echo $userData[0]['email']; ?>";
+
+        $("#emailConfirm").on("input", function () {
+            var enteredEmail = $(this).val();
+            if (enteredEmail === userEmailAddress) {
+                $("#confirm-delete-acc-btn").removeClass("disabled").removeAttr("disabled");
+                $("#confirm-delete-acc-btn").addClass("btn-secondary");
+            } else {
+                $("#confirm-delete-acc-btn").addClass("disabled").attr("disabled", "disabled");
+                $("#confirm-delete-acc-btn").removeClass("btn-secondary");
+            }
+        });
+
+        $('#confirm-delete-acc-btn').click(function() {
+            $.ajax({
+                type: 'POST',
+                url: '../delete_acc.php',
+                success: function(response) {
+                    console.log(response);
+                    $.ajax({
+                        type: 'POST',
+                        url: '../sign_out.php',
+                        success: function(logoutResponse) {
+                            window.location.href = '../index.php';
+                        },
+                        error: function(logoutError) {
+                            console.log(logoutError);
+                        }
+                    });
+                },
+                error: function(error) {
+                    console.log(error);
+                    $('#deleteAccountFailedModal').modal('show');
+                }
             });
         });
 

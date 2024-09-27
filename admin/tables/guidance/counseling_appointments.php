@@ -3,6 +3,7 @@
 $statuses = array(
     'all' => 'All',
     '1' => 'Pending',
+    '8' => 'Cancelled',
     '3' => 'For Evaluation',
     '7' => 'Approved',
     '6' => 'Rejected'
@@ -42,7 +43,7 @@ $statuses = array(
             </th>
         </tr>
     </thead>
-    <tbody id="table-body">
+    <tbody id="table-body" class="user-select-none">
         <!-- Table rows will be generated dynamically using JavaScript -->
     </tbody>
 </table>
@@ -56,6 +57,9 @@ $statuses = array(
                 <option value="7">Approved</option>
                 <option value="6">Rejected</option>
             </select>
+        </div>
+        <div>
+            <a href="#" id="status-info-btn">What do these statuses mean?</a>
         </div>
         <button id="update-status-button" class="btn btn-primary w-50" disabled><i class="fa-solid fa-pen-to-square"></i> Update</button>
     </div> 
@@ -84,6 +88,72 @@ $statuses = array(
     </div>
 </div>
 <!-- End of view comment modal -->
+<!-- View user status info modal -->
+<div id="statusInfoModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="statusInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusInfoModalLabel">What do these statuses mean?</h5>
+            </div>
+            <div class="modal-body">
+                <div id="reminder-container" class="alert alert-info mt-3" role="alert">
+                    <p class="mb-0"><small><span class="badge rounded-pill bg-dark">Pending</span> - The appointment is under review by the office.</small></p>
+                    <p class="mb-0"><small><span class="badge rounded-pill bg-secondary">Cancelled</span> - The user has cancelled the request. You must change the status to <b>Rejected</b> after.</small></p>
+                    <p class="mb-0"><small><span class="badge rounded-pill bg-danger">Rejected</span> - The appointment is rejected
+                        by the office.</small></p>
+                    <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: blue;">For
+                            evaluation</span> - Additional requirements or appointment purpose is under review by the office.</small>
+                    </p>
+                    <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: green;">Approved</span> -
+                        The appointment is approved and the requestor must proceed to the Guidance Office.</small></p>
+                    <!-- <p class="mb-0">You will find answers to the questions we get asked the most about requesting for academic documents through <a href="FAQ.php">FAQs</a>.</p> -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of view status info modal -->
+<!-- Confirm generate modal -->
+<div id="confirmGenerateReportModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirmGenerateReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmGenerateReportModalLabel">Confirm generate</h5>
+            </div>
+            <div class="modal-body">
+                <p>You will be generating a report in .pdf document format. Do you want to export your report in .csv?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <!-- "dr" stands for document request -->
+                <button id="generate-gc-to-pdf-btn" type="button" class="btn btn-primary" data-bs-dismiss="modal">No. Generate in .pdf</button>
+                <button id="generate-gc-to-csv-btn" type="button" class="btn btn-primary" data-bs-dismiss="modal">Yes. Export to .csv</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of confirm generate modal -->
+<!-- Confirm status update modal -->
+<div id="confirmStatusUpdateModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirmStatusUpdateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmStatusUpdateModalLabel">Confirm Update</h5>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="confirm-update-btn" type="button" class="btn btn-primary" data-bs-dismiss="modal">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of confirm status update modal -->
 <script>
     function getStatusBadgeClass(status) {
         switch (status) {
@@ -93,6 +163,8 @@ $statuses = array(
                 return 'bg-danger';
             case 'For Evaluation':
                 return 'bg-primary';
+            case 'Cancelled':
+                return 'bg-secondary';
             default:
                 return 'bg-dark';
         }
@@ -136,7 +208,7 @@ $statuses = array(
                         var date = new Date(parsedTimestamp * 1000);
                         var formattedDate = date.toLocaleString();
 
-                        var row = '<tr>' +
+                        var row = '<tr class="clickable-row">' +
                             '<td><input type="checkbox" name="counseling-checkbox" value="' + schedules.counseling_id + '"></td>' +
                             '<td>' + schedules.counseling_id + '</td>' +
                             '<td>' + formattedDate + '</td>' +
@@ -168,6 +240,16 @@ $statuses = array(
                     var noRecordsRow = '<tr><td class="text-center table-light p-4" colspan="7">No Transactions</td></tr>';
                     tableBody.innerHTML = noRecordsRow;
                 }
+
+                // Add event listener for row clicks
+                var rows = document.querySelectorAll('.clickable-row');
+                rows.forEach(function (row) {
+                    row.addEventListener('click', function (event) {
+                        var checkbox = row.querySelector('input[name="counseling-checkbox"]');
+                        checkbox.checked = !checkbox.checked;
+                        handleCheckboxChange(); // Update the checkbox status
+                    });
+                });
 
                 // Update the pagination links
                 var paginationLinks = document.getElementById('pagination-links');
@@ -227,6 +309,38 @@ $statuses = array(
         // Update status button listener
         $('#update-status-button').on('click', function() {
             var checkedCheckboxes = $('input[name="counseling-checkbox"]:checked');
+            var numSelectedStatuses = checkedCheckboxes.length;
+            
+            // Update the message in the confirmation modal
+            $('#confirmStatusUpdateModal .modal-body').html('<p>Are you sure you want to update ' + numSelectedStatuses + ' status(es)?</p>');
+
+            // Show the confirmation modal
+            $('#confirmStatusUpdateModal').modal('show');
+            // var counselingIds = checkedCheckboxes.map(function() {
+            //     return $(this).val();
+            // }).get();
+            // var statusId = $('#update-status').val(); // Get the selected status ID
+
+            // $.ajax({
+            //     url: 'tables/guidance/update_counseling.php',
+            //     method: 'POST',
+            //     data: { counselingIds: counselingIds, statusId: statusId }, // Include the selected status ID in the data
+            //     success: function(response) {
+            //         // Handle the success response
+            //         console.log('Status updated successfully');
+
+            //         // Refresh the table after status update
+            //         handlePagination(1, '', 'counseling_id', 'desc');
+            //     },
+            //     error: function() {
+            //         // Handle the error response
+            //         console.log('Error occurred while updating status');
+            //     }
+            // });
+        });
+
+        $('#confirm-update-btn').on('click', function() {
+            var checkedCheckboxes = $('input[name="counseling-checkbox"]:checked');
             var counselingIds = checkedCheckboxes.map(function() {
                 return $(this).val();
             }).get();
@@ -248,22 +362,9 @@ $statuses = array(
                     console.log('Error occurred while updating status');
                 }
             });
-        });
 
-        // Checkbox change listener using event delegation
-        $(document).on('change', 'input[name="counseling-checkbox"]', function() {
-            var checkedCheckboxes = $('input[name="counseling-checkbox"]:checked');
-            var updateButton = $('#update-status-button');
-            var statusDropdown = $('#update-status');
-
-            if (checkedCheckboxes.length > 0) {
-                updateButton.prop('disabled', false);
-                statusDropdown.prop('disabled', false);
-            }
-            else {
-                updateButton.prop('disabled', true);
-                statusDropdown.prop('disabled', true);
-            }
+            // Close the confirmation modal
+            $('#confirmStatusUpdateModal').modal('hide');
         });
 
         // Add event listener to the table body
@@ -284,7 +385,47 @@ $statuses = array(
                 $('#viewCommentModal').modal('show');
             }
         });
+
+        // Checkbox change listener using event delegation
+        $(document).on('change', 'input[name="counseling-checkbox"]', handleCheckboxChange);
+
+        $('#status-info-btn').on('click', function() {
+            $('#statusInfoModal').modal('show');
+        });
     });
+
+    // Add event listener for checkbox clicks
+    $(document).on('click', 'input[name="counseling-checkbox"]', function(event) {
+        // Toggle the checkbox state when the checkbox is clicked directly
+        var checkbox = $(event.target);
+        checkbox.prop('checked', !checkbox.prop('checked'));
+        handleCheckboxChange(); // Update the checkbox status
+    });
+
+    // Add event listener for row clicks
+    var rows = document.querySelectorAll('.clickable-row');
+    rows.forEach(function (row) {
+        row.addEventListener('click', function (event) {
+            var checkbox = row.querySelector('input[name="counseling-checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            handleCheckboxChange(); // Update the checkbox status
+        });
+    });
+
+    function handleCheckboxChange() {
+        var checkedCheckboxes = $('input[name="counseling-checkbox"]:checked');
+        var updateButton = $('#update-status-button');
+        var statusDropdown = $('#update-status');
+
+        if (checkedCheckboxes.length > 0) {
+            updateButton.prop('disabled', false);
+            statusDropdown.prop('disabled', false);
+        }
+        else {
+            updateButton.prop('disabled', true);
+            statusDropdown.prop('disabled', true);
+        }
+    }
 
     // Perform search functionality when either the Filter or Search button is pressed
     function filterStatus() {
@@ -302,6 +443,9 @@ $statuses = array(
                 break;
             case '7':
                 return ' approved';
+                break;
+            case '8':
+                return ' cancelled';
                 break;
             default:
                 return '';

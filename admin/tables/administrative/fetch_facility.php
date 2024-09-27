@@ -27,7 +27,8 @@ $appointmentQuery = "SELECT appointment_id, course, section, start_date_time_sch
                  INNER JOIN user_roles ON users.user_role = user_roles.user_role_id
                  INNER JOIN statuses ON appointment_facility.status_id = statuses.status_id
                  INNER JOIN facility ON appointment_facility.facility_id = facility.facility_id
-                 WHERE start_date_time_sched IS NOT NULL";
+                 WHERE start_date_time_sched IS NOT NULL
+                 AND is_archived = 0";
  
 
 if (!empty($searchTerm)) {

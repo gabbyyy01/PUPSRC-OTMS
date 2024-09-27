@@ -45,6 +45,7 @@
                     Status
                     <i class="sort-icon fa-solid fa-caret-down"></i>
                 </th>
+                <th></th>
             </tr>
         </thead>
         <tbody id="table-body">
@@ -61,6 +62,7 @@
                 <option value="1">Pending</option>
                 <option value="2">For Receiving</option>
                 <option value="3">For Evaluation</option>
+                <option value="4">Ready for Pickup</option>
                 <option value="5">Released</option>
                 <option value="6">Rejected</option>
             </select>
@@ -92,6 +94,46 @@
     </div>
 </div>
 <!-- End of view purpose modal -->
+<!-- Create reason for rejected status modal -->
+<div id="createReasonModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="createReasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createReasonModalLabel">Create Reason</h5>
+            </div>
+            <div class="modal-body">
+                <form id="createReasonForm">
+                    <div class="mb-3">
+                        <label for="reason" class="form-label">Reason:</label>
+                        <textarea class="form-control" id="reason" name="reason" rows="3" maxlength="255"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="submitReasonBtn">Submit</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of reason for rejection modal -->
+<!-- Modal for displaying reason for cancellation -->
+<div class="modal fade" id="viewReasonModal" tabindex="-1" role="dialog" aria-labelledby="viewReasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewReasonModalLabel">Reason for Cancellation</h5>
+            </div>
+            <div class="modal-body">
+                <p id="cancellationReasonText" style= "overflow-wrap: break-word;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary"  data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of view reason modal -->
     <br><br><br>
 
     <div class="container-fluid text-center p-4">
@@ -349,10 +391,18 @@
                             '<a href="#" class="btn-link" style="text-decoration: none;" onclick="openPurposeModal(\'' + appointment.purpose + '\')">See Purpose</a>' +
                             '<td class="text-center">' +
                             '<span class="badge rounded-pill ' + getStatusBadgeClass(appointment.status_name) + '">' + appointment.status_name + '</span>' +
-                            '</td>' +
-                            '</tr>';
+                            '</td>';
+                            
+                            if (appointment.status_name === 'Cancelled') {
+                                row += '<td class="text-center"><a href="#" class="btn btn-primary btn-sm view-reason" data-status="' + appointment.status_name + '" data-request-id="' + appointment.appointment_id + '"><i class="fa-solid fa-eye"></i> View Reason </a></td>';
+                            } else if (appointment.status_name === 'Rejected') {
+                                row += '<td class="text-center"><a href="#" class="btn btn-primary btn-sm create-reason" data-status="' + appointment.status_name + '" data-request-id="' + appointment.appointment_id + '"><i class="fa-solid fa-pen-to-square"></i> Create Reason </a></td>';
+                            } else {
+                                row += '<td></td>';
+                            }
 
-                        tableBody.innerHTML += row;
+                            row += '</tr>';
+                            tableBody.innerHTML += row;
                     }
                 } else {
                     var noRecordsRow = '<tr><td class="text-center table-light p-4" colspan="12">No Transactions</td></tr>';
@@ -371,6 +421,8 @@
                         paginationLinks.innerHTML += pageLink;
                     }
                 }
+                // Call the function to disable checkboxes initially
+                updateCheckboxStatus();
             },
             error: function() {
                 // Hide the loading indicator in case of an error
@@ -421,6 +473,75 @@
             handlePagination(1, searchTerm + filterStatus(), 'appointment_id', 'desc');
         });
 
+
+         // Create Reason button click listener
+         $(document).on('click', '.create-reason', function(event) {
+                var requestId = event.target.getAttribute('data-request-id');
+                
+                // Set the request ID and office in the modal
+                $('#createReasonModal').data('request-id', requestId);
+                
+                // Show the modal
+                $('#createReasonModal').modal('show');
+            });
+
+        // Submit Reason button click listener
+        $('#submitReasonBtn').on('click', function() {
+                var requestId = $('#createReasonModal').data('request-id');
+                var reason = $('#reason').val();
+                
+                // Make an AJAX request to update the purpose in the database
+                $.ajax({
+                    url: 'tables/administrative/update_create_reason_facility.php', // Your PHP script to handle the update
+                    method: 'POST',
+                    data: {
+                        request_id: requestId,
+                        reason: reason
+                    },
+                    success: function(response) {
+                        // Handle success response
+                        
+                        // Close the modal
+                        $('#createReasonModal').modal('hide');
+                        
+                        // Refresh the table
+                        handlePagination(1, '', 'appointment_id', 'desc');
+                    },
+                    error: function() {
+                        // Handle error
+                        console.log('Error occurred while updating reason.');
+                    }
+                });
+            });
+
+            $(document).on('click', '.create-reason', function(event) {
+            var requestId = event.target.getAttribute('data-request-id');
+            var office = event.target.getAttribute('data-office');
+            
+            // Set the request ID 
+            $('#createReasonModal').data('request-id', requestId);
+            
+            // Fetch the existing purpose and populate the textarea
+            $.ajax({
+                url: 'tables/administrative/fetch_reason_facility.php', // Your PHP script to fetch the existing purpose
+                method: 'POST',
+                data: {
+                    request_id: requestId
+                },
+                success: function(response) {
+                    // Update the textarea with the existing purpose
+                    $('#reason').val(response);
+                    
+                    // Show the modal
+                    $('#createReasonModal').modal('show');
+                },
+                error: function() {
+                    // Handle error
+                    console.log('Error occurred while fetching existing purpose.');
+                }
+            });
+        });
+
         // Update status button listener
         $('#update-status-button').on('click', function() {
             var checkedCheckboxes = $('input[name="request-checkbox"]:checked');
@@ -437,6 +558,11 @@
                     // Handle the success response
                     console.log('Status updated successfully');
 
+                    // // Update facility availability if status is "Released"
+                    // if (statusId === '5') { // Assuming "Released" status has ID 2
+                    //     updateFacilityAvailability(requestIds);
+                    // }
+
                     // Refresh the table after status update
                     handlePagination(1, '', 'appointment_id', 'desc');
                 },
@@ -445,7 +571,27 @@
                     console.log('Error occurred while updating status');
                 }
             });
+
+            // function updateFacilityAvailability(requestIds) {
+            //     $.ajax({
+            //         url: 'tables/administrative/update_facility_availability.php', // Modify the URL accordingly
+            //         method: 'POST',
+            //         data: { requestIds: requestIds }, // Include relevant data to identify facilities
+            //         success: function(response) {
+            //             // Handle the success response
+            //             console.log('Facility availability updated');
+            //             location.reload();
+            //         },
+            //         error: function() {
+            //             // Handle the error response
+            //             console.log('Error occurred while updating facility availability');
+            //         }
+            //     });
+            // }
+
+            
         });
+
 
         // Checkbox change listener
         $('input[name="request-checkbox"]').on('change', function() {
@@ -478,6 +624,53 @@
         });
     });
 
+    //Function to disable checkbox on cancelled status
+    function updateCheckboxStatus() {
+    var checkboxes = $('input[name="request-checkbox"]');
+
+        checkboxes.each(function() {
+            var row = $(this).closest('tr');
+            var statusCell = row.find('.rounded-pill');
+            var status = statusCell.text().trim().toLowerCase();
+
+            // Disable the checkbox based on specific statuses
+            if ( status === 'cancelled') 
+            {
+                $(this).prop('disabled', true);
+            } else {
+                $(this).prop('disabled', false);
+            }
+        });
+    }
+
+    // Event Listener for View Reason Button
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('view-reason')) {
+            var requestId = event.target.getAttribute('data-request-id');
+            openViewReasonModal(requestId);
+        }
+    });
+
+    // Function to Open View Reason Modal
+    function openViewReasonModal(requestId) {
+        // Make an AJAX request to fetch the reason for cancellation
+        $.ajax({
+            url: 'tables/administrative/get_facility_cancel_reason.php',
+            method: 'POST',
+            data: { request_id: requestId },
+            success: function (response) {
+                // Update the modal content with the reason for cancellation
+                $('#cancellationReasonText').text(response);
+
+                // Open the View Reason modal
+                $('#viewReasonModal').modal('show');
+            },
+            error: function (error) {
+                console.error('Error fetching cancellation reason:', error.responseText);
+            }
+        });
+    }
+
     function filterStatus() {
         var filterByStatusVal = $('#filterByStatus').val();
 
@@ -494,6 +687,8 @@
                 return ' released';
             case '6':
                 return ' rejected';
+            case '7':
+                return ' cancelled';
             default:
                 return '';
         }

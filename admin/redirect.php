@@ -6,7 +6,7 @@
 
 session_start();
 if (!isset($_SESSION['admin_id'])) {
-    header('Location: http://localhost/index.php');
+    header('Location: /index.php');
     exit;
 }
 
@@ -21,7 +21,7 @@ switch ($_SESSION['office_name']) {
         header("Location: ../admin/registrar.php");
         break;
     case 'Academic Office':
-        header("Location: ../admin/academic.php");
+        header("Location: ../admin/subject_overload.php");
         break;
     case 'Guidance Office':
         header("Location: ../admin/guidance.php");

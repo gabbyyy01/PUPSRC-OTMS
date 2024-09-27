@@ -17,7 +17,7 @@
         <div class="loading-spinner"></div>
         <p class="loading-text display-3 pt-3">Getting things ready...</p>
     </div>
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
     <script src="../node_modules/jquery/dist/jquery.min.js"></script>
     <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
@@ -31,7 +31,7 @@
 
             // Avoid admin user from accessing other office pages
             if ($_SESSION['office_name'] != "Academic Office") {
-                header("Location: http://localhost/admin/redirect.php");
+                header("Location: /admin/redirect.php");
             }
         ?>
         <div class="container-fluid py-2">
@@ -40,7 +40,6 @@
                     <div class="d-flex w-100 justify-content-between p-0">
                         <div class="d-flex p-2">
                             <select class="form-select" id="transaction-type" onchange="handleTransactionTypeChange(this.value)">
-                                <option value="">All</option>
                                 <option value="subjectoverload">Subject Overload</option>
                                 <option value="gradeaccreditation">Grade Accreditation</option>
                                 <option value="crossenrollment">Cross-Enrollment</option>
@@ -63,6 +62,7 @@
                                 <th class="text-center" scope="col">Application</th>
                                 <th class="text-center" scope="col">View attachment</th> <!-- Added column -->
                                 <th class="text-center" scope="col">PDF forms</th> <!-- Added column -->
+                                <th class="text-center" scope="col">Note</th> <!-- Added column -->
                                 <th class="text-center" scope="col">Status</th>
                             </tr>
                         </thead>
@@ -73,12 +73,15 @@
                                 <td></td>
                                 <td></td> <!-- Added column -->
                                 <td></td> <!-- Added column -->
+                                <td></td> <!-- Added column -->
                                 <td class="text-center">
                                     <select class="form-select" id="status">
                                         <option value="1">Pending</option>
                                         <option value="2">Missing</option>
                                         <option value="3">Under Verification</option>
-                                        <option value="4">Verified</option>
+                                        <option value="4">To Be Evaluated</option> <!-- Added column -->
+                                        <option value="5">Need F to F Evaluation</option> <!-- Added column -->
+                                        <option value="6">Verified</option>
                                     </select>
                                 </td>         
                             </tr>
@@ -88,12 +91,15 @@
                                 <td></td>
                                 <td></td> <!-- Added column -->
                                 <td></td> <!-- Added column -->
+                                <td></td> <!-- Added column -->
                                 <td class="text-center">
                                     <select class="form-select" id="status">
                                         <option value="1">Pending</option>
                                         <option value="2">Missing</option>
                                         <option value="3">Under Verification</option>
-                                        <option value="4">Verified</option>
+                                        <option value="4">To Be Evaluated</option> <!-- Added column -->
+                                        <option value="5">Need F to F Evaluation</option> <!-- Added column -->
+                                        <option value="6">Verified</option>
                                     </select>
                                 </td>
                             </tr>
@@ -103,12 +109,15 @@
                                 <td></td>
                                 <td></td> <!-- Added column -->
                                 <td></td> <!-- Added column -->
+                                <td></td> <!-- Added column -->
                                 <td class="text-center">
                                     <select class="form-select" id="status">
                                         <option value="1">Pending</option>
                                         <option value="2">Missing</option>
                                         <option value="3">Under Verification</option>
-                                        <option value="4">Verified</option>
+                                        <option value="4">To Be Evaluated</option> <!-- Added column -->
+                                        <option value="5">Need F to F Evaluation</option> <!-- Added column -->
+                                        <option value="6">Verified</option>
                                     </select>
                                 </td>
                             </tr>
@@ -118,12 +127,15 @@
                                 <td></td>
                                 <td></td> <!-- Added column -->
                                 <td></td> <!-- Added column -->
+                                <td></td> <!-- Added column -->
                                 <td class="text-center">
                                     <select class="form-select" id="status">
                                         <option value="1">Pending</option>
                                         <option value="2">Missing</option>
                                         <option value="3">Under Verification</option>
-                                        <option value="4">Verified</option>
+                                        <option value="4">To Be Evaluated</option> <!-- Added column -->
+                                        <option value="5">Need F to F Evaluation</option> <!-- Added column -->
+                                        <option value="6">Verified</option>
                                     </select>
                                 </td>
                             </tr>
@@ -133,12 +145,15 @@
                                 <td></td>
                                 <td></td> <!-- Added column -->
                                 <td></td> <!-- Added column -->
+                                <td></td> <!-- Added column -->
                                 <td class="text-center">
                                     <select class="form-select" id="status">
                                         <option value="1">Pending</option>
                                         <option value="2">Missing</option>
                                         <option value="3">Under Verification</option>
-                                        <option value="4">Verified</option>
+                                        <option value="4">To Be Evaluated</option> <!-- Added column -->
+                                        <option value="5">Need F to F Evaluation</option> <!-- Added column -->
+                                        <option value="6">Verified</option>
                                     </select>
                                 </td>
                             </tr>
@@ -190,53 +205,6 @@
         window.addEventListener('DOMContentLoaded', function() {
             const dropdown = document.getElementById('transaction-type');
             const table = document.getElementById('transactions-table');
-
-            const defaultTable = `<thead>
-                    <tr>
-                        <th class="text-center" scope="col">Request Code</th>
-                        <th class="text-center" scope="col">Requestor</th>
-                        <th class="text-center" scope="col">Application</th>
-                        <th class="text-center" scope="col">View attachment</th> <!-- Added column -->
-                        <th class="text-center" scope="col">PDF forms</th> <!-- Added column -->
-                        <th class="text-center" scope="col">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td> <!-- Added column -->
-                        <td></td> <!-- Added column -->
-                        <td class="text-center">
-                            <select class="form-select" id="status">
-                                <option value="1">Pending</option>
-                                <option value="2">Missing</option>
-                                <option value="3">Under Verification</option>
-                                <option value="4">Verified</option>
-                            </select>
-                        </td>         
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td> <!-- Added column -->
-                        <td></td> <!-- Added column -->
-                        <td class="text-center">
-                            <select class="form-select" id="status">
-                                <option value="1">Pending</option>
-                                <option value="2">Missing</option>
-                                <option value="3">Under Verification</option>
-                                <option value="4">Verified</option>
-                            </select>
-                        </td>
-                    </tr>
-                    
-                   
-                </tbody>
-            `;
-            table.innerHTML = defaultTable;
         })
     </script>
     <script src="../loading.js"></script>

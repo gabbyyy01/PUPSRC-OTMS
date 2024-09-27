@@ -20,7 +20,7 @@
     <div class="loading-spinner"></div>
     <p class="loading-text display-3 pt-3">Getting things ready...</p>
   </div>
-  <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+  <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
   <script src="../node_modules/jquery/dist/jquery.min.js"></script>
   <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
   <script src="script.js"></script>
@@ -34,7 +34,7 @@
 
             // Avoid admin user from accessing other office pages
             if ($_SESSION['office_name'] != "Registrar Office") {
-                header("Location: http://localhost/admin/redirect.php");
+                header("Location: /admin/redirect.php");
             }
 
             $table = 'document_request';
@@ -43,7 +43,7 @@
               $table = $_POST['table-select'];
             }
 
-            $query = "SELECT services FROM reg_services WHERE services_id > 22";
+            $query = "SELECT services, services_id FROM reg_services";
             $stmt = $connection->prepare($query);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -73,32 +73,31 @@
                 <div id="filterByStatusSection" class="input-group">
                   <label class="input-group-text" for="filterByStatus">Filter by Status:</label>
                   <select name="filterByStatus" id="filterByStatus" class="form-select">
-                    <!-- <option value="all">All</option>    
-                                        <option value="1">Pending</option>
-                                        <option value="2">For Receiving</option>
-                                        <option value="3">For Evaluation</option>
-                                        <option value="4">Ready for Pickup</option>
-                                        <option value="5">Released</option>
-                                        <option value="6">Rejected</option> -->
+                     <!-- Select options are dynamically displayed depending on the table -->
                   </select>
                 </div>
               </div>
               <div>
                 <div id="filterByDocTypeSection" class="input-group">
                   <label class="input-group-text" for="filterByDocType">Filter by Document Type:</label>
-                  <select name="filterByDocType" id="filterByDocType" class="form-select">
+                  <select multiple name="filterByDocType[]" id="filterByDocType" class="form-select">
                     <option value="all">All</option>
-                    <!-- <option value="goodMoral">Good Moral Document</option> -->
-                    <!-- <option value="clearance">Clearance</option> -->
                     <?php foreach ($data as $row) {
-                      echo '<option value="' . $row['services'] . '">' . $row['services'] . '</option>';
+                      if ($row['services_id'] < '23' || $row['services_id'] == '35') {
+                        echo '<option value="' . $row['services'] . '">' . $row['services'] . '</option>';
+                      }
                     }
                     ?>
                   </select>
                 </div>
-                <button type="button" id="filterButton" name="filterButton" class="btn btn-primary mt-2"><i
+                <button type="submit" id="filterButton" onclick="showSelectedValues()" name="filterButton" class="btn btn-primary mt-2"><i
                     class="fa-solid fa-filter"></i> Filter</button>
-              </div>
+                <?php if ($table === 'document_request') { ?>
+                  <a href="tables/registrar/generate_registrar_reports.php" id="generate-report-pdf-link" name="generate-report-btn" class="btn btn-primary mt-2" target="_blank"><i class="fas fa-file-pdf"></i>PDF</a>
+                  <a href="tables/registrar/generate_registrar_reports_excel.php" id="generate-report-excel-link" name="generate-report-btn" class="btn btn-primary mt-2" target="_blank"><i class="fas fa-file-excel"></i>Excel</a>
+                  <a href="tables/registrar/generate_registrar_reports_docx.php" id="generate-report-docx-link" name="generate-report-btn" class="btn btn-primary mt-2" target="_blank"><i class="fas fa-solid fa-file-word"></i>Word</a>
+                <?php } ?>
+                </div>
             </div>
             <div class="mt-2">
               <div class="input-group search-group">
@@ -123,23 +122,13 @@
                   include 'tables/registrar/student_records.php';
                 }
                 elseif ($table === 'feedback') {
-                  include 'tables/registrar/feedback.php';
+                  include 'tables/registrar/feedbacks_table.php';
                 }
             ?>
           </div>
         </div>
       </div>
-      <!-- <div class="d-flex w-100 justify-content-between p-2">
-                <button class="btn btn-primary px-4" onclick="window.history.go(-1); return false;">
-                    <i class="fa-solid fa-arrow-left"></i> Back
-                </button>
-                </button>
-                <div class="d-flex justify-content-end gap-2">
-                    <button class="btn btn-primary" disabled>Previous</button>
-                    <button class="btn btn-primary" disabled>Next</button>
-                </div>
-            </div>
-             -->
+     
     </div>
     <div class="push"></div>
   </div>
@@ -173,6 +162,50 @@
       // Call the handlePagination function with the updated sort parameters
       handlePagination(1, '', column, order);
     });
+
+  $(document).ready(function() {
+    $("#generate-report-pdf-link").on('click', function() {
+      var selectedStatus = $("#filterByStatus").val();
+      var searchValue = $("#search-input").val();
+      var selectedRequestDescriptions = $('#filterByDocType').val() || [];
+
+      var encodedStatus = encodeURIComponent(selectedStatus);
+      var encodedSearchValue = encodeURIComponent(searchValue);
+      var encodedRequestDescriptions = encodeURIComponent(JSON.stringify(selectedRequestDescriptions));
+
+      var link = "tables/registrar/generate_registrar_reports.php?status=" + encodedStatus + "&search=" + encodedSearchValue + "&req_desc=" + encodedRequestDescriptions;
+
+      $(this).attr("href", link);
+    });
+
+    $("#generate-report-excel-link").on('click', function() {
+      var selectedStatus = $("#filterByStatus").val();
+      var searchValue = $("#search-input").val();
+      var selectedRequestDescriptions = $('#filterByDocType').val() || [];
+
+      var encodedStatus = encodeURIComponent(selectedStatus);
+      var encodedSearchValue = encodeURIComponent(searchValue);
+      var encodedRequestDescriptions = encodeURIComponent(JSON.stringify(selectedRequestDescriptions));
+
+      var link = "tables/registrar/generate_registrar_reports_excel.php?status=" + encodedStatus + "&search=" + encodedSearchValue + "&req_desc=" + encodedRequestDescriptions;
+
+      $(this).attr("href", link);
+    });
+
+    $("#generate-report-docx-link").on('click', function() {
+      var selectedStatus = $("#filterByStatus").val();
+      var searchValue = $("#search-input").val();
+      var selectedRequestDescriptions = $('#filterByDocType').val() || [];
+
+      var encodedStatus = encodeURIComponent(selectedStatus);
+      var encodedSearchValue = encodeURIComponent(searchValue);
+      var encodedRequestDescriptions = encodeURIComponent(JSON.stringify(selectedRequestDescriptions));
+
+      var link = "tables/registrar/generate_registrar_reports_docx.php?status=" + encodedStatus + "&search=" + encodedSearchValue + "&req_desc=" + encodedRequestDescriptions;
+
+      $(this).attr("href", link);
+    });
+  });
 
     // Function to show or hide the "Filter by Document Type" section
     function toggleFilterByDocTypeSection() {
@@ -236,6 +269,18 @@
       option.value = key;
       option.textContent = statuses[key];
       filterByStatusSelect.appendChild(option);
+    }
+  }
+
+  var selectElement = document.getElementById("filterByDocType");
+  var options = selectElement.options;
+  // for minimizing dropdown width
+  for (var i = 0; i < options.length; i++) {
+    var option = options[i];
+    var optionText = option.text;
+
+    if (optionText.length > 60) {
+      option.text = optionText.substring(0, 100) + '...';
     }
   }
   </script>

@@ -18,7 +18,7 @@
         <div class="loading-spinner"></div>
         <p class="loading-text display-3 pt-3">Getting things ready...</p>
     </div>
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
     <script src="../node_modules/jquery/dist/jquery.min.js"></script>
     <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </head>
@@ -52,10 +52,6 @@
             <a href="accounting/offsetting1.php" class="btn btn-primary d-block text-decoration-none bg-maroon text-light p-4 rounded">
             <h2>OFFSETTING</h2>
                 <p>Balance your campus accounts</p>
-            </a>
-            <a href="transactions.php" class="btn btn-primary d-block text-decoration-none bg-maroon text-light p-4 rounded">
-            <h2>TRANSACTION HISTORY</h2>
-                <p>Access your past and current transactions</p>
             </a>
         </div>
         <div class="push"></div>

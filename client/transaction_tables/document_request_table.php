@@ -1,49 +1,92 @@
-<div class="table-responsive">
-    <table id="transactions-table" class="table table-hover hidden">
-        <thead>
-            <tr class="table-active">
-                <th class="text-center"></th>
-                <th class="text-center doc-request-id-header sortable-header" data-column="request_id" scope="col" data-order="desc">
-                    Request Code
-                    <i class="sort-icon fa-solid fa-caret-down"></i>
-                </th>
-                <th class="text-center doc-request-office-header sortable-header" data-column="office_name" scope="col" data-order="desc">
-                    Office
-                    <i class="sort-icon fa-solid fa-caret-down"></i>
-                </th>
-                <th class="text-center doc-request-description-header sortable-header" data-column="request_description" scope="col" data-order="desc">
-                    Request
-                    <i class="sort-icon fa-solid fa-caret-down"></i>
-                </th>
-                <th class="text-center doc-request-schedule-header sortable-header" data-column="scheduled_datetime" scope="col" data-order="desc">
-                    Scheduled Date
-                    <i class="sort-icon fa-solid fa-caret-down"></i>
-                </th>
-                <th class="text-center doc-request-amount-header sortable-header" data-column="amount_to_pay" scope="col" data-order="desc">
-                    Amount to pay
-                    <i class="sort-icon fa-solid fa-caret-down"></i>
-                </th>
-                <th class="text-center doc-request-status-header sortable-header" data-column="status_name" scope="col" data-order="desc">
-                    Status
-                    <i class="sort-icon fa-solid fa-caret-down"></i>
-                </th>
-                <th class="text-center"></th>
-            </tr>
-        </thead>
-        <tbody id="table-body">
-            <!-- Table rows will be generated dynamically using JavaScript -->
-        </tbody>
-    </table>
-</div>
-<div id="pagination" class="container-fluid p-0">
-    <nav aria-label="Page navigation">
-        <div class="d-flex justify-content-between align-items-start gap-3">
-            <button id="delete-button" class="btn btn-primary" disabled="disabled">Delete Transaction(s)</button>
-            <ul class="pagination" id="pagination-links">
-                <!-- Pagination links will be generated dynamically using JavaScript -->
-            </ul>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3 p-1">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="alert-heading">
+                        <i class="fa-solid fa-circle-info"></i> Reminder
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">Always check your transaction status to follow instructions.</p>
+                    <p class="mb-0">You can delete or edit transactions during <span
+                        class="badge rounded-pill bg-dark">Pending</span> status.</p>
+                    <hr />
+                    <p class="mb-0"><small><span class="badge rounded-pill bg-dark">Pending</span> - The requester should settle
+                        the deficiency/ies to necessary office.</small></p>
+                    <p class="mb-0"><small><span class="badge rounded-pill bg-secondary">Cancelled</span> - The user has cancelled the request.</small></p>
+                    <p class="mb-0"><small><span class="badge rounded-pill bg-danger">Rejected</span> - The request is rejected
+                        by the admin.</small></p>
+                    <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: orange;">For
+                            receiving</span> - The request is currently in Receiving window and waiting for submission of
+                        requirements.</small></p>
+                    <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: blue;">For
+                            evaluation</span> - Evaluation and Processing of records and required documents for releasing.</small>
+                    </p>
+                    <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: DodgerBlue;">Ready for
+                            pickup</span> - The requested document/s is/are already available for pickup at the releasing section
+                        of student records.</small></p>
+                    <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: green;">Released</span> -
+                        The requested document/s was/were claimed.</small></p>
+                </div>
+            </div>
         </div>
-    </nav>
+        <div class="col-md-9 p-1">
+            <div class="card">
+                <div class="table-responsive">
+                    <table id="transactions-table" class="table table-hover hidden m-0 p-0">
+                        <thead>
+                            <tr class="table-active">
+                                <th class="text-center"></th>
+                                <th class="text-center doc-request-id-header sortable-header" data-column="request_id" scope="col" data-order="desc">
+                                    Request Code
+                                    <i class="sort-icon fa-solid fa-caret-down"></i>
+                                </th>
+                                <th class="text-center doc-request-office-header sortable-header" data-column="office_name" scope="col" data-order="desc">
+                                    Office
+                                    <i class="sort-icon fa-solid fa-caret-down"></i>
+                                </th>
+                                <th class="text-center doc-request-description-header sortable-header" data-column="request_description" scope="col" data-order="desc">
+                                    Request
+                                    <i class="sort-icon fa-solid fa-caret-down"></i>
+                                </th>
+                                <th class="text-center doc-request-schedule-header sortable-header" data-column="scheduled_datetime" scope="col" data-order="desc">
+                                    Scheduled Date
+                                    <i class="sort-icon fa-solid fa-caret-down"></i>
+                                </th>
+                                <th class="text-center doc-request-specified-purpose-header sortable-header" data-column="purpose" scope="col" data-order="desc">
+                                    Purpose
+                                    <i class="sort-icon fa-solid fa-caret-down"></i>
+                                </th>
+                                <th class="text-center doc-request-amount-header sortable-header" data-column="amount_to_pay" scope="col" data-order="desc">
+                                    Amount to pay
+                                    <i class="sort-icon fa-solid fa-caret-down"></i>
+                                </th>
+                                <th class="text-center doc-request-status-header sortable-header" data-column="status_name" scope="col" data-order="desc">
+                                    Status
+                                    <i class="sort-icon fa-solid fa-caret-down"></i>
+                                </th>
+                                <th class="text-center"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="user-select-none">
+                            <!-- Table rows will be generated dynamically using JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="pagination" class="container-fluid p-0 pt-2">
+                <nav aria-label="Page navigation">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <button id="delete-button" class="btn btn-primary" disabled="disabled">Delete Transaction(s)</button>
+                        <ul class="pagination" id="pagination-links">
+                            <!-- Pagination links will be generated dynamically using JavaScript -->
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
 </div>
 <!-- View edit modal -->
 <div id="viewEditModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="viewEditModalLabel" aria-hidden="true">
@@ -62,7 +105,42 @@
     </div>
 </div>
 <!-- End of view edit modal -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<!-- Reason Modal -->
+<div id="reasonModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="reasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reasonModalLabel">Reason for Rejection</h5>
+            </div>
+            <div class="modal-body">
+                <!-- Reason content will be populated here dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Reason Modal -->
+<!-- Confirm delete modal -->
+<div id="confirmDeleteModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm delete</h5>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this request?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                <button id="delete-request-btn" type="button" class="btn btn-primary" data-bs-dismiss="modal">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of confirm delete modal -->
+<script src="../../node_modules/flatpickr/dist/flatpickr.min.js"></script>
 <script>
     function getStatusBadgeClass(status) {
         switch (status) {
@@ -106,8 +184,18 @@
         });
     }
 
+    // Function to handle row click and toggle the checkbox
+    function handleRowClick(event) {
+        if (event.target.type !== 'checkbox') {
+            // If the clicked element is not the checkbox, toggle the checkbox
+            var checkbox = event.currentTarget.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+        }
+    }
+
     function addDeleteButtonListeners() {
         var deleteButton = document.getElementById('delete-button');
+        var confirmDeleteButton = document.getElementById('delete-request-btn');
 
         // Get all the checkboxes
         var checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -127,13 +215,24 @@
             deleteButton.disabled = !canDelete || checkedCheckboxes.length === 0;
         }
 
+        // Add event listeners for row clicks
+        var rows = document.querySelectorAll('#table-body tr');
+        rows.forEach(function (row) {
+            row.addEventListener('click', handleRowClick);
+            row.addEventListener('click', updateDeleteButtonState);
+        });
+
         // Add event listeners to checkboxes
         checkboxes.forEach(function (checkbox) {
             checkbox.addEventListener('change', updateDeleteButtonState);
         });
 
+        deleteButton.addEventListener('click', function() {
+            $("#confirmDeleteModal").modal("show");
+        });
+
         // Add event listener to delete button
-        deleteButton.addEventListener('click', function () {
+        confirmDeleteButton.addEventListener('click', function () {
             var checkedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
 
             // Get the request ids of the checked rows
@@ -141,9 +240,7 @@
                 return checkbox.value;
             });
 
-            if (confirm('Are you sure you want to delete the selected appointment(s)?')) {
-                handleDeleteRequest(requestIds);
-            }
+            handleDeleteRequest(requestIds);
         });
 
         // Update delete button state initially
@@ -154,15 +251,9 @@
     function generateUrlToOfficeColumn(officeName) {
         switch (officeName) {
             case 'Guidance Office':
-                return 'http://localhost/student/guidance.php';
+                return '/client/guidance.php';
             case 'Registrar Office':
-                return 'http://localhost/student/registrar.php';
-            case 'Academic Office':
-                return 'http://localhost/student/academic.php';
-            case 'Accounting Office':
-                return 'http://localhost/student/accounting.php';
-            case 'Administrative Office':
-                return 'http://localhost/student/administrative.php';
+                return '/client/registrar.php';
         }
     }
 
@@ -296,6 +387,45 @@
         });
     }
 
+    //------------------------------------------------------------------------
+    // Event listener for view reason buttons
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('view-reason')) {
+            var requestId = event.target.getAttribute('data-request-id');
+            populateReasonModal(requestId);
+        }
+    });
+
+    // Function to populate the reason modal with the reason data
+    function populateReasonModal(requestId) {
+        $.ajax({
+            url: 'transaction_tables/get_registrar_reason_rejected.php', // Replace with the actual URL to fetch reason from the database
+            method: 'POST',
+            data: { request_id: requestId },
+            success: function(response) {
+                var reasonData = JSON.parse(response); // Parse the JSON response
+                var reason = reasonData.request_letter; // Extract the reason text
+                
+                var modalTitle = document.getElementById('reasonModalLabel');
+                var modalBody = document.querySelector('#reasonModal .modal-body');
+
+                modalTitle.innerText = 'Reason for Rejection';
+
+                if (reason !== null) {
+                    modalBody.innerHTML = '<p>' + reason + '</p>';
+                } else {
+                    modalBody.innerHTML = '<p>No reason provided yet.</p>';
+                }
+
+                $("#reasonModal").modal("show");
+            },
+            error: function() {
+                console.log('Error occurred while fetching reason.');
+            }
+        });
+    }
+    //------------------------------------------------------------------------
+
     function handlePagination(page, searchTerm = '', column = 'request_id', order = 'desc') {
         // Show the loading indicator
         var loadingIndicator = document.getElementById('loading-indicator');
@@ -336,20 +466,27 @@
                         }
 
                         var row = '<tr>' +
-                            '<td><input type="checkbox" id="' + request.request_id + '" name="' + request.request_id + '" value="' + request.request_id + '"></td>' +
+                            '<td class="pe-auto"><input type="checkbox" id="' + request.request_id + '" name="' + request.request_id + '" value="' + request.request_id + '"></td>' +
                             '<td>' + request.request_id + '</td>' +
-                            '<td><a href="' + generateUrlToOfficeColumn(request.office_name) + '">' + request.office_name + '</a></td>' +
+                            '<td class="pe-auto"><a href="' + generateUrlToOfficeColumn(request.office_name) + '">' + request.office_name + '</a></td>' +
                             '<td>' + request.request_description + '</td>' +
                             '<td>' + (request.scheduled_datetime !== null ? (new Date(request.scheduled_datetime).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })) : 'Not yet scheduled') + '</td>' +
+                            '<td>' + request.purpose + '</td>' +
                             '<td>' + '₱' + request.amount_to_pay + '</td>' +
                             '<td class="text-center">' +
                             '<span class="badge rounded-pill doc-request-status-cell ' + getStatusBadgeClass(request.status_name) + '">' + request.status_name + '</span>' +
-                            '</td>';
+                            '</td>' +
+                            '<td class="text-center">';
 
-                        // Don't allow edit button to appear when status is not pending
-                        request.status_name == "Pending" 
-                        ? row += '<td><a href="#" class="btn btn-primary btn-sm edit-request" data-status="' + request.status_name + '" data-request-id="' + request.request_id + '" data-office="' + request.office_name + '">Edit <i class="fa-solid fa-pen-to-square"></i></a></td>' + '</tr>' 
-                        : row += '<td></td></tr>'
+                        // Don't allow edit button to appear when status is not pending and view reason for rejected (Registrar Office)
+                        if (request.status_name === "Pending") {
+                            row += '<a href="#" class="btn btn-primary btn-sm edit-request pe-auto" data-status="' + request.status_name + '" data-request-id="' + request.request_id + '" data-office="' + request.office_name + '">Edit <i class="fa-solid fa-pen-to-square"></i></a>'
+                            }
+                        else if (request.status_name === "Rejected" && request.office_name === "Registrar Office") {
+                            row += '<a href="#" class="btn btn-primary btn-sm view-reason pe-auto" data-status="' + request.status_name + '" data-request-id="' + request.request_id + '" data-office="' + request.office_name + '">Reason <i class="fa-solid fa-eye"></i></a>'
+                        }
+                             
+                        row += '</td></tr>';
                         tableBody.innerHTML += row;
                     }
                 }  else {
@@ -412,9 +549,57 @@
     handlePagination(1, '', 'request_id', 'desc');
 
     $(document).ready(function() {
-        $('#button-addon2').click(function() {
-            var searchTerm = $('#search-input').val();
+        // Click event handling on Search button
+        $('#search-button').click(function() {
+            var searchTerm = $('#search-input').val() + filterOffice() + filterStatus();
             handlePagination(1, searchTerm, 'request_id', 'desc');
         });
     });
+
+    // Add office name value on the search term based on the selected option on office filter dropdown
+    function filterOffice() {
+        var filterByOfficeNameVal = $('#office-filter-btn').text();
+        
+        switch (filterByOfficeNameVal) {
+            case 'Registrar Office':
+                return 'registrar office';
+                break;
+            case 'Guidance Office':
+                return 'guidance office';
+                break;
+            default:
+                return '';
+        }
+    }
+
+    // Add status value on the search term based on the selected option on status filter dropdown
+    function filterStatus() {
+        var filterByStatusVal = $('#status-filter-btn').text();
+        
+        switch (filterByStatusVal) {
+            case 'Pending':
+                return ' pending';
+                break;
+            case 'For receiving':
+                return ' for receiving';
+                break;
+            case 'For evaluation':
+                return ' for evaluation';
+                break;
+            case 'Ready for pickup':
+                return ' ready for pickup';
+                break;
+            case 'Released':
+                return ' released';
+                break;
+            case 'Rejected':
+                return ' rejected';
+                break;
+            case 'Cancelled':
+                return ' cancelled';
+                break;
+            default:
+                return '';
+        }
+    }
 </script>

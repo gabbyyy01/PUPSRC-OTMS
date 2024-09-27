@@ -17,7 +17,7 @@
         <div class="loading-spinner"></div>
         <p class="loading-text display-3 pt-3">Getting things ready...</p>
     </div>
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
     <script src="../node_modules/jquery/dist/jquery.min.js"></script>
     <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
@@ -30,10 +30,10 @@
 
             // Avoid admin user from accessing other office pages
             if ($_SESSION['office_name'] != "Accounting Office") {
-                header("Location: http://localhost/admin/redirect.php");
+                header("Location: /admin/redirect.php");
             }
 
-            $table = 'payments';
+            $table = 'offsetting';
 
             if (isset($_POST['filter-button'])) {
                 $table = $_POST['table-select'];
@@ -48,38 +48,27 @@
                                 <form id="defaultTableValueSelect" class="d-flex input-group" action="accounting.php" method="post">
                                     <label class="input-group-text" for="table-select">Service:</label>    
                                     <select id="transactionTableSelect" class="form-select" name="table-select">
-                                        <option value="payments" <?php if ($table === 'payments') echo 'selected'; ?>>Payments</option>
                                         <option value="offsetting" <?php if ($table === 'offsetting') echo 'selected'; ?>>Offsetting</option>
                                         <option value="feedbacks" <?php if ($table === 'feedbacks') echo 'selected'; ?>>Feedbacks</option>
                                     </select>
                                     <button id="tableSelectSubmit" type="submit" name="filter-button" class="btn btn-primary">Load Table</button>
                                 </form>
                             </div>
-
+                            <div>
+                                <div id="filterByStatusSection" class="input-group">
+                                    <label class="input-group-text" for="filterByStatus">Filter by Status:</label>
+                                    <select name="filterByStatus" id="filterByStatus" class="form-select">
+                                        <!-- Select options are dynamically displayed depending on the table -->
+                                    </select>
+                                </div>
+                            </div>
                             <div>
                                 <div id="filterByDocTypeSection" class="input-group">
                                     <label class="input-group-text" for="filterByDocType">Filter by Document Type:</label>
                                     <select name="filterByDocType" id="filterByDocType" class="form-select">
                                         <option value="all">All</option>
-                                        <option value="Application for Graduation SIS and Non-SIS">Application for Graduation SIS and Non-SIS</option>
-                                        <option value="Correction of Entry of Grade">Correction of Entry of Grade</option>
-                                        <option value="Completion of Incomplete Grade">Completion of Incomplete Grade</option>
-                                        <option value="Late Reporting of Grade">Late Reporting of Grade</option>
-                                        <option value="Processing of Request for Correction of Name: PSA/School Records">Processing of Request for Correction of Name: PSA/School Records</option>
-                                        <option value="Certification, Verification, Authentication (CAV/Apostile)">Certification, Verification, Authentication (CAV/Apostile)</option>
-                                        <option value="Certificate of Attendance">Certificate of Attendance</option>
-                                        <option value="Certificate of Graduation">Certificate of Graduation</option>
-                                        <option value="Certificate of Medium of Instruction">Certificate of Medium of Instruction</option>
-                                        <option value="Certificate of General Weighted Average (GWA)">Certificate of General Weighted Average (GWA)</option>
-                                        <option value="Non Issuance of Special Order">Non Issuance of Special Order </option>
-                                        <option value="Course/Subject Description">Course/Subject Description</option>
-                                        <option value="Certificate of Transfer Credential/Honorable Dismissal">Certificate of Transfer Credential/Honorable Dismissal</option>
-                                        <option value="Transcript of Records (Second and succeeding copies)">Transcript of Records (Second and succeeding copies)</option>
-                                        <option value="Transcript of Records (Copy for Another School)">Transcript of Records (Copy for Another School)</option>
-                                        <option value="Course Accreditation Service (for Transferees)">Course Accreditation Service (for Transferees)</option>
-                                        <option value="Informative Copy of Grades">Informative Copy of Grades</option>
-                                        <option value="Certified True Copy">Certified True Copy</option>
-                                        <option value="Academic Verification Service">Academic Verification Service</option>
+                                        <option value="Miscellaneous Fee">Miscellaneous Fee</option>
+                                        <option value="Tuition Fee">Tuition Fee</option>
                                         <!-- Add more options as needed -->
                                     </select>
                                 </div>
@@ -101,10 +90,10 @@
                     <div id="table-container">
                         <?php
                             // Load the requested table
-                            if ($table === 'payments') {
-                                include 'tables/accounting/payments_table.php';
-                            }
-                            elseif ($table === 'offsetting') {
+                            // if ($table === 'payments') {
+                            //     include 'tables/accounting/payments_table.php';
+                            // }
+                            if ($table === 'offsetting') {
                                 include 'tables/accounting/offsetting_table.php';
                             }
                             elseif ($table === 'feedbacks') {
@@ -150,7 +139,7 @@
             function toggleFilterByDocTypeSection() {
                 var selectedTable = $("#transactionTableSelect").val();
 
-                if (selectedTable === "payments") {
+                if (selectedTable === "offsetting") {
                     $("#filterByDocTypeSection").show();
                 } else {
                     $("#filterByDocTypeSection").hide();
@@ -183,6 +172,27 @@
         // Check viewport initially and on window resize
         window.addEventListener('DOMContentLoaded', checkViewport);
         window.addEventListener('resize', checkViewport);
+
+        // Get the select element on "Filter by Status" dropdown
+        var filterByStatusSelect = document.getElementById('filterByStatus');
+
+        // Define the statuses array
+        var statuses = <?php echo json_encode($statuses); ?>;
+
+        // Generate the options
+        var allOption = document.createElement('option');
+        allOption.value = 'all';
+        allOption.textContent = 'All';
+        filterByStatusSelect.appendChild(allOption);
+
+        for (var key in statuses) {
+            if (statuses.hasOwnProperty(key) && key !== 'all') {
+                var option = document.createElement('option');
+                option.value = key;
+                option.textContent = statuses[key];
+                filterByStatusSelect.appendChild(option);
+            }
+        }
     </script>
     <script src="../loading.js"></script>
 </body>

@@ -5,24 +5,21 @@
                 Payment Code
                 <i class="sort-icon fa-solid fa-caret-down"></i>
             </th>
+            <th class="text-center doc-request-id-header sortable-header" data-column="transaction_date" scope="col" data-order="desc">
+                    Date
+                    <i class="sort-icon fa-solid fa-caret-down"></i>
+                </th>
             <th class="text-center doc-request-office-header sortable-header" data-column="course" scope="col" data-order="desc">
-                Course
+                Role
                 <i class="sort-icon fa-solid fa-caret-down"></i>
             </th>
             <th class="text-center doc-request-description-header sortable-header" data-column="documentType" scope="col" data-order="desc">
                 Document Type
                 <i class="sort-icon fa-solid fa-caret-down"></i>
             </th>
-            <th class="text-center doc-request-amount-header sortable-header" data-column="referenceNumber" scope="col" data-order="desc">
-                Reference Number
-                <i class="sort-icon fa-solid fa-caret-down"></i>
-            </th>
-            <th class="text-center doc-request-status-header sortable-header" data-column="amount" scope="col" data-order="desc">
-                Amount
-                <i class="sort-icon fa-solid fa-caret-down"></i>
-            </th>
-            <th class="text-center doc-request-status-header" scope="col">
-                Attached Image
+            
+            <th class="text-center doc-request-status-header" data-column="status" scope="col" data-order="desc">
+                Status
             </th>
         </tr>
     </thead>
@@ -39,7 +36,32 @@
         </div>
     </nav>
 </div>
+<div class="d-flex">
+    <div id="reminder-container" class="alert alert-info mt-3" role="alert">
+        <h4 class="alert-heading">
+            <i class="fa-solid fa-circle-info"></i> Reminder
+        </h4>
+        <p class="mb-0">Always check your transaction status to follow instructions.</p>
+        <p class="mb-0">You can delete or edit transactions during <span
+            class="badge rounded-pill bg-dark">Pending</span> status.</p>
+        <p class="mb-0"><small><span class="badge rounded-pill bg-dark">Pending</span> - The payment is being processed by the office.</small></p>
+        <p class="mb-0"><small><span class="badge rounded-pill bg-danger">Rejected</span> - The request is rejected
+            by the office.</small></p>
+        <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: green;">Processed</span> -
+            The Accounting Office has processed your payment.</small></p>
+        <!-- <p class="mb-0">You will find answers to the questions we get asked the most about requesting for academic documents through <a href="FAQ.php">FAQs</a>.</p> -->
+    </div>
+</div>
 <script>
+    function getStatusBadgeClass(status) {
+        switch (status) {
+            case 'Processed':
+                return 'bg-success';
+            default:
+                return 'bg-dark';
+        }
+    }
+
     function handlePagination(page, searchTerm = '', column = 'payment_id', order = 'desc') {
         // Show the loading indicator
         var loadingIndicator = document.getElementById('loading-indicator');
@@ -74,15 +96,28 @@
 
                         var row = '<tr>' +
                             '<td>' + 'AP-' + payments.payment_id + '</td>' +
+                            '<td>' + (new Date(payments.transaction_date).toLocaleString('en-US', {
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            hour12: true
+                            }))
+                            + '</td>' +
                             '<td>' + payments.course + '</td>' +
                             '<td>' + payments.documentType + '</td>' +
                             // '<td>' + (request.scheduled_datetime !== null ? (new Date(request.scheduled_datetime)).toLocaleString() : 'Not yet scheduled') + '</td>' +
-                            '<td>' + payments.referenceNumber + '</td>' +
+                            //'<td>' + payments.referenceNumber + '</td>' +
                             // '<td class="text-center">' +
                             // scheduleButton +
                             // '</td>' +
-                            '<td>₱' + payments.amount + '</td>' +
-                            '<td class="text-center"><a href="accounting/' + payments.image_url + '" target="_blank" class="btn btn-sm btn-primary">See Image</a></td></tr>';
+                            //'<td>₱' + payments.amount + '</td>' +
+                            '<td class="text-center">' +
+                            '<span class="badge rounded-pill doc-request-status-cell ' + getStatusBadgeClass(payments.status) + '">' + payments.status + '</span>' +
+                            '</td>' +
+                            '</tr>';
+                            //'<td class="text-center"><a href="accounting/' + payments.image_url + '" target="_blank" class="btn btn-sm btn-primary">See Image</a></td></tr>';
                         tableBody.innerHTML += row;
                     }
                 }  else {

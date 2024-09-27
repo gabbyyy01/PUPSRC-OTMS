@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
     <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../node_modules/@fortawesome/fontawesome-free/css/fontawesome.min.css">
     <link rel="stylesheet" href="../style.css">
     <!-- Loading page -->
     <!-- The container is placed here in order to display the loading indicator first while the page is loading. -->
@@ -17,7 +18,7 @@
         <div class="loading-spinner"></div>
         <p class="loading-text display-3 pt-3">Getting things ready...</p>
     </div>
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
     <script src="../node_modules/jquery/dist/jquery.min.js"></script>
     <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
@@ -30,7 +31,7 @@
 
             // Avoid admin user from accessing other office pages
             if ($_SESSION['office_name'] != "Administrative Office") {
-                header("Location: http://localhost/admin/redirect.php");
+                header("Location: /admin/redirect.php");
             }
 
             $table = 'request_equipment';
@@ -51,7 +52,10 @@
                                     <label class="input-group-text" for="table-select">Service:</label>    
                                     <select id="transactionTableSelect" class="form-select" name="table-select">
                                         <option value="request_equipment" <?php if ($table === 'request_equipment') echo 'selected'; ?>>Request of Equipment</option>
-                                        <option value="appointment_facility" <?php if ($table === 'appointment_facility') echo 'selected'; ?>>Facility Appointment </option>
+                                        <option value="appointment_facility" <?php if ($table === 'appointment_facility') echo 'selected'; ?>>Facility Appointment</option>
+                                        <option value="administrative_feedbacks" <?php if ($table === 'administrative_feedbacks') echo 'selected'; ?>>Feedbacks</option>
+                                        <option value="archived_equipment" <?php if ($table === 'archived_equipment') echo 'selected'; ?>>Archived Equipment</option>
+                                        <option value="archived_facility" <?php if ($table === 'archived_facility') echo 'selected'; ?>>Archived Facility</option>
                                     </select>
                                     <button id="tableSelectSubmit" type="submit" name="filter-button" class="btn btn-primary"><i class="fas fa-refresh"></i> Load Table</button>
                                 </form>
@@ -67,19 +71,23 @@
                                         <option value="4">Ready for Pickup</option>
                                         <option value="5">Released</option>
                                         <option value="6">Rejected</option>
+                                        <option value="7">Cancelled</option>
                                     </select>
                                 </div>
                             </div>
                             <div>
-                                <!-- <div id="filterByDocTypeSection" class="input-group">
-                                    <label class="input-group-text" for="filterByDocType">Filter by Document Type:</label>
-                                    <select name="filterByDocType" id="filterByDocType" class="form-select">
-                                        <option value="all">All</option>
-                                        <option value="goodMoral">Good Moral Document</option>
-                                        <option value="clearance">Clearance</option>
-                                    </select>
-                                </div> -->
+
+                            <div>
                                 <button type="button" id="filterButton" name="filterButton" class="btn btn-primary mt-2"><i class="fa-solid fa-filter"></i> Filter</button>
+                                
+                                <?php if ($table === 'request_equipment') { ?>
+                                    <a href="tables/administrative/request_equipment_reports.php" id="generate-report-equipment" name="generate-report-btn" class="btn btn-primary mt-2" target="_blank"><i class="fas fa-file-pdf"></i> Generate Equipment Report</a>
+                                <?php } ?>
+                                <!-- Generate Report button for Facility -->
+                                <?php if ($table === 'appointment_facility') { ?>
+                                    <a href="tables/administrative/appointment_facility_reports.php" id="generate-report-facility" name="generate-report-btn" class="btn btn-primary mt-2" target="_blank"><i class="fas fa-file-pdf"></i> Generate Facility Report</a>
+                                <?php } ?>
+                            </div>
                             </div>
                         </div>
                         <div class="mt-2">
@@ -102,6 +110,15 @@
                             }
                             elseif ($table === 'appointment_facility') {
                                 include 'tables/administrative/appointment_facility.php';
+                            }
+                            elseif ($table === 'administrative_feedbacks') {
+                                include 'tables/administrative/feedbacks_table.php';
+                            } 
+                            elseif ($table === 'archived_equipment') {
+                                include 'tables/administrative/archived_equipment.php';
+                            } 
+                            elseif ($table === 'archived_facility') {
+                                include 'tables/administrative/archived_facility.php';
                             }
                         ?>
                     </div>
@@ -150,31 +167,46 @@
                 handlePagination(1, '', column, order);
             });
 
-            // // Function to show or hide the "Filter by Document Type" section
-            // function toggleFilterByDocTypeSection() {
-            //     var selectedTable = $("#transactionTableSelect").val();
 
-            //     if (selectedTable === "document_request") {
-            //         $("#filterByDocTypeSection").show();
-            //     } else {
-            //         $("#filterByDocTypeSection").hide();
-            //     }
-            // }
-
-            // // Call the toggle function initially
-            // toggleFilterByDocTypeSection();
-
-            // // Event listener for the table select dropdown change
-            // $("#tableSubmitSelect").on('click', function() {
-            //     toggleFilterByDocTypeSection();
-            // });
-
-            // $('.dropdown-submenu a.dropdown-toggle').on("click", function(e){
-            //     $(this).next('ul').toggle();
-            //     e.stopPropagation();
-            //     e.preventDefault();
-            // });
         });
+
+
+        $(document).ready(function() {
+            // Handle "Generate Report" button click for equipment table
+            $("#generate-report-equipment").on('click', function() {
+                var selectedStatus = $("#filterByStatus").val();
+                var searchValue = $("#search-input").val();
+                var table = $(this).data('table'); // Get the data-table attribute
+                
+                // Encode the selected values and search query to be URL-safe
+                var encodedStatus = encodeURIComponent(selectedStatus);
+                var encodedSearchValue = encodeURIComponent(searchValue);
+
+                // Construct the URL for equipment report generation
+                var link = "tables/administrative/request_equipment_reports.php?status=" + encodedStatus + "&search=" + encodedSearchValue;
+
+                // Redirect to the equipment report generation page
+                $(this).attr("href", link);
+            });
+
+            // Handle "Generate Report" button click for facility table
+            $("#generate-report-facility").on('click', function() {
+                var selectedStatus = $("#filterByStatus").val();
+                var searchValue = $("#search-input").val();
+                var table = $(this).data('table'); // Get the data-table attribute
+
+                // Encode the selected values and search query to be URL-safe
+                var encodedStatus = encodeURIComponent(selectedStatus);
+                var encodedSearchValue = encodeURIComponent(searchValue);
+
+                // Construct the URL for facility report generation
+                var link = "tables/administrative/appointment_facility_reports.php?status=" + encodedStatus + "&search=" + encodedSearchValue;
+
+                // Redirect to the facility report generation page
+                $(this).attr("href", link);
+            });
+        });
+
 
         function checkViewport() {
             if (window.innerWidth < 768) {
@@ -187,6 +219,8 @@
         // Check viewport initially and on window resize
         window.addEventListener('DOMContentLoaded', checkViewport);
         window.addEventListener('resize', checkViewport);
+
+        
     </script>
     <script src="../loading.js"></script>
 </body>

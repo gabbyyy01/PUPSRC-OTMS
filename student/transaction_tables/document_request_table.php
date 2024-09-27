@@ -41,6 +41,32 @@
         </div>
     </nav>
 </div>
+<div class="d-flex">
+    <div id="reminder-container" class="alert alert-info mt-3" role="alert">
+        <h4 class="alert-heading">
+            <i class="fa-solid fa-circle-info"></i> Reminder
+        </h4>
+        <p class="mb-0">Always check your transaction status to follow instructions.</p>
+        <p class="mb-0">You can delete or edit transactions during <span
+            class="badge rounded-pill bg-dark">Pending</span> status.</p>
+        <p class="mb-0"><small><span class="badge rounded-pill bg-dark">Pending</span> - The requester should settle
+            the deficiency/ies to necessary office.</small></p>
+        <p class="mb-0"><small><span class="badge rounded-pill bg-danger">Rejected</span> - The request is rejected
+            by the admin.</small></p>
+        <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: orange;">For
+                receiving</span> - The request is currently in Receiving window and waiting for submission of
+            requirements.</small></p>
+        <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: blue;">For
+                evaluation</span> - Evaluation and Processing of records and required documents for releasing.</small>
+        </p>
+        <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: DodgerBlue;">Ready for
+                pickup</span> - The requested document/s is/are already available for pickup at the releasing section
+            of student records.</small></p>
+        <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: green;">Released</span> -
+            The requested document/s was/were claimed.</small></p>
+        <!-- <p class="mb-0">You will find answers to the questions we get asked the most about requesting for academic documents through <a href="FAQ.php">FAQs</a>.</p> -->
+    </div>
+</div>
 <!-- View edit modal -->
 <div id="viewEditModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="viewEditModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -57,7 +83,7 @@
     </div>
 </div>
 <!-- End of view edit modal -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="../../node_modules/flatpickr/dist/flatpickr.min.js"></script>
 <script>
     function getStatusBadgeClass(status) {
         switch (status) {
@@ -272,6 +298,7 @@
                             '<span class="badge rounded-pill doc-request-status-cell ' + getStatusBadgeClass(request.status_name) + '">' + request.status_name + '</span>' +
                             '</td>' +
                             '<td><a href="#" class="btn btn-primary btn-sm edit-request" data-request-id="' + request.request_id + '">Edit <i class="fa-solid fa-pen-to-square"></i></a></td>' +
+                            '<td><button class="btn btn-primary btn-sm cancel-request" data-request-id="' + request.request_id + '" >Cancel <i class="fa-solid fa-xmark"></i></button></td>' + 
                             '</tr>';
                         tableBody.innerHTML += row;
                     }
@@ -295,6 +322,8 @@
 
                 // Add event listeners for delete buttons
                 addDeleteButtonListeners();
+                // Checks for request status and hides cancelled button
+                updateCancelButtonStatus();
             },
             error: function() {
                 // Hide the loading indicator in case of an error
@@ -330,6 +359,60 @@
             handlePagination(1, '', column, order);
         });
     });
+
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('cancel-request')) {
+            var requestId = event.target.getAttribute('data-request-id');
+           cancelRequest(requestId);
+        }
+    });
+
+    // Function for Cancel button
+    function cancelRequest(requestId) {
+    // Make an AJAX request to cancel the equipment request
+        $.ajax({
+            url: 'transaction_tables/cancel_doc_request.php',
+            method: 'POST',
+            data: { request_id: requestId },
+            success: function(response) {
+                console.log(requestId);
+                console.log('Request canceled successfully');
+
+
+
+                handlePagination(1, '', 'request_id', 'desc');
+            },
+            error: function(error) {
+                console.error('Error canceling request:', error.responseText);
+            }
+        });
+    }
+
+    // Disables Cancel Button for certain statuses
+    function updateCancelButtonStatus() {
+        var cancelButtons = document.querySelectorAll('.cancel-request');
+
+        cancelButtons.forEach(function (button) {
+            var row = button.closest('tr');
+            var statusCell = row.querySelector('.doc-request-status-cell');
+            var status = statusCell.textContent.trim();
+
+            // Disable the Cancel button based on specific statuses
+            if (
+                status === 'For Receiving' ||
+                status === 'For Evaluation' ||
+                status === 'Ready for Pickup' ||
+                status === 'Released' ||
+                status === 'Rejected' ||
+                status === 'Approved' ||
+                status === 'Cancelled'
+            ) {
+                button.disabled = true;
+            } else {
+                button.disabled = false;
+            }
+        });
+    }
 
     // Initial pagination request (page 1)
     handlePagination(1, '', 'request_id', 'desc');

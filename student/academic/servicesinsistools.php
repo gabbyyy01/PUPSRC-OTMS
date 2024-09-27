@@ -15,7 +15,7 @@
         <p class="loading-text display-3 pt-3">Getting things ready...</p>
     </div>
     <link rel="stylesheet" href="academic.css">
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
     <script src="/node_modules/jquery/dist/jquery.min.js"></script>
     <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </head>
@@ -97,7 +97,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <a href="../survey.php" class="btn btn-primary">Yes</a>
+                        <a href="../academic.php" class="btn btn-primary">Yes</a>
                     </div>
                 </div>
             </div>
@@ -105,16 +105,8 @@
 
         <div class="push"></div>
     </div>
-
-    <div class="footer container-fluid w-100 text-md-left text-center d-md-flex align-items-center justify-content-center bg-light flex-nowrap">
-        <div>
-            <small>PUP Santa Rosa - Online Transaction Management System Beta 0.1.0</small>
-        </div>
-        <div>
-            <small><a href="https://www.pup.edu.ph/terms/" target="_blank" class="btn btn-link">Terms of Use</a>|</small>
-            <small><a href="https://www.pup.edu.ph/privacy/" target="_blank" class="btn btn-link">Privacy Statement</a></small>
-        </div>
     </div>
+    <?php include '../../footer.php'; ?>
     <script src="../../loading.js"></script>
     <script src="modal.js"></script>
     <script src="upload.js"></script>

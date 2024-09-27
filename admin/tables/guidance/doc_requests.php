@@ -3,6 +3,7 @@
 $statuses = array(
     'all' => 'All',
     '1' => 'Pending',
+    '8' => 'Cancelled',
     '2' => 'For Receiving',
     '3' => 'For Evaluation',
     '4' => 'Ready for Pickup',
@@ -52,7 +53,7 @@ $statuses = array(
                 </th>
             </tr>
         </thead>
-        <tbody id="table-body">
+        <tbody id="table-body" class="user-select-none">
             <!-- Table rows will be generated dynamically using JavaScript -->
         </tbody>
     </table>
@@ -69,6 +70,9 @@ $statuses = array(
                 <option value="5">Released</option>
                 <option value="6">Rejected</option>
             </select>
+        </div>
+        <div>
+            <a href="#" id="status-info-btn">What do these statuses mean?</a>
         </div>
         <button id="update-status-button" class="btn btn-primary w-50" disabled><i class="fa-solid fa-pen-to-square"></i> Update</button>
     </div>    
@@ -96,6 +100,78 @@ $statuses = array(
     </div>
 </div>
 <!-- End of view user details modal -->
+<!-- View user status info modal -->
+<div id="statusInfoModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="statusInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusInfoModalLabel">What do these statuses mean?</h5>
+            </div>
+            <div class="modal-body">
+                <div id="reminder-container" class="alert alert-info mt-3" role="alert">
+                    <p class="mb-0"><small><span class="badge rounded-pill bg-dark">Pending</span> - The requester should settle
+                        the deficiency/ies to necessary office.</small></p>
+                    <p class="mb-0"><small><span class="badge rounded-pill bg-secondary">Cancelled</span> - The user has cancelled the request. You must change the status to <b>Rejected</b> after.</small></p> 
+                    <p class="mb-0"><small><span class="badge rounded-pill bg-danger">Rejected</span> - The request is rejected
+                        by the admin.</small></p>
+                    <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: orange;">For
+                            receiving</span> - The request is currently in Receiving window and waiting for submission of
+                        requirements.</small></p>
+                    <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: blue;">For
+                            evaluation</span> - Evaluation and Processing of records and required documents for releasing.</small>
+                    </p>
+                    <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: DodgerBlue;">Ready for
+                            pickup</span> - The requested document/s is/are already available for pickup at the releasing section
+                        of student records.</small></p>
+                    <p class="mb-0"><small><span class="badge rounded-pill" style="background-color: green;">Released</span> -
+                        The requested document/s was/were claimed.</small></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of view status info modal -->
+<!-- Confirm generate modal -->
+<div id="confirmGenerateReportModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirmGenerateReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmGenerateReportModalLabel">Confirm generate</h5>
+            </div>
+            <div class="modal-body">
+                <p>You will be generating a report in .pdf document format. Do you want to export your report in .csv?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <!-- "dr" stands for document request -->
+                <button id="generate-dr-to-pdf-btn" type="button" class="btn btn-primary" data-bs-dismiss="modal">No. Generate in .pdf</button>
+                <button id="generate-dr-to-csv-btn" type="button" class="btn btn-primary" data-bs-dismiss="modal">Yes. Export to .csv</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of confirm generate modal -->
+<!-- Confirm status update modal -->
+<div id="confirmStatusUpdateModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirmStatusUpdateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmStatusUpdateModalLabel">Confirm Update</h5>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="confirm-update-btn" type="button" class="btn btn-primary" data-bs-dismiss="modal">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of confirm status update modal -->
 <script>
     function getStatusBadgeClass(status) {
         switch (status) {
@@ -109,6 +185,8 @@ $statuses = array(
                 return 'bg-primary';
             case 'Ready for Pickup':
                 return 'bg-info';
+            case 'Cancelled':
+                return 'bg-secondary';
             default:
                 return 'bg-dark';
         }
@@ -218,7 +296,7 @@ $statuses = array(
                     for (var i = 0; i < data.document_requests.length; i++) {
                         var request = data.document_requests[i];
 
-                        var row = '<tr>' +
+                        var row = '<tr class="clickable-row">' +
                             '<td><input type="checkbox" name="request-checkbox" value="' + request.request_id + '"></td>' +
                             '<td>' + request.request_id + '</td>' +
                             '<td>' + request.formatted_request_id + '</td>' +
@@ -256,6 +334,16 @@ $statuses = array(
                 $('.user-details-link').on('click', function(event) {
                     var userId = event.target.getAttribute('data-user-id');
                     populateUserInfoModal(userId);
+                });
+
+                // Add event listener for row clicks
+                var rows = document.querySelectorAll('.clickable-row');
+                rows.forEach(function (row) {
+                    row.addEventListener('click', function (event) {
+                        var checkbox = row.querySelector('input[name="request-checkbox"]');
+                        checkbox.checked = !checkbox.checked;
+                        handleCheckboxChange(); // Update the checkbox status
+                    });
                 });
             },
             error: function() {
@@ -315,30 +403,66 @@ $statuses = array(
         // Update status button listener
         $('#update-status-button').on('click', function() {
             var checkedCheckboxes = $('input[name="request-checkbox"]:checked');
+            var numSelectedStatuses = checkedCheckboxes.length;
+            
+            // Update the message in the confirmation modal
+            $('#confirmStatusUpdateModal .modal-body').html('<p>Are you sure you want to update ' + numSelectedStatuses + ' status(es)?</p>');
+
+            // Show the confirmation modal
+            $('#confirmStatusUpdateModal').modal('show');
+        });
+
+        $('#confirm-update-btn').on('click', function() {
+            // Get the selected status ID
+            var statusId = $('#update-status').val();
+
+            // Get the IDs of selected requests
+            var checkedCheckboxes = $('input[name="request-checkbox"]:checked');
             var requestIds = checkedCheckboxes.map(function() {
                 return $(this).val();
             }).get();
-            var statusId = $('#update-status').val(); // Get the selected status ID
 
             $.ajax({
                 url: 'tables/guidance/update_doc_requests.php',
                 method: 'POST',
-                data: { requestIds: requestIds, statusId: statusId }, // Include the selected status ID in the data
+                data: { requestIds: requestIds, statusId: statusId },
                 success: function(response) {
-                    // Handle the success response
-
                     // Refresh the table after status update
                     handlePagination(1, '', 'request_id', 'desc');
                 },
                 error: function() {
-                    // Handle the error response
                     console.log('Error occurred while updating status');
                 }
             });
+
+            // Close the confirmation modal
+            $('#confirmStatusUpdateModal').modal('hide');
         });
 
         // Checkbox change listener using event delegation
         $(document).on('change', 'input[name="request-checkbox"]', handleCheckboxChange);
+
+        $('#status-info-btn').on('click', function() {
+            $('#statusInfoModal').modal('show');
+        });
+    });
+
+    // Add event listener for checkbox clicks
+    $(document).on('click', 'input[name="request-checkbox"]', function(event) {
+        // Toggle the checkbox state when the checkbox is clicked directly
+        var checkbox = $(event.target);
+        checkbox.prop('checked', !checkbox.prop('checked'));
+        handleCheckboxChange(); // Update the checkbox status
+    });
+
+    // Add event listener for row clicks
+    var rows = document.querySelectorAll('.clickable-row');
+    rows.forEach(function (row) {
+        row.addEventListener('click', function (event) {
+            var checkbox = row.querySelector('input[name="request-checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            handleCheckboxChange(); // Update the checkbox status
+        });
     });
 
     function handleCheckboxChange() {
@@ -392,6 +516,9 @@ $statuses = array(
                 break;
             case '6':
                 return ' rejected';
+                break;
+            case '8':
+                return ' cancelled';
                 break;
             default:
                 return '';

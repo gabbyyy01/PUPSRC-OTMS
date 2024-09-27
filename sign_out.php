@@ -5,6 +5,6 @@
 
     $isLoggedIn = false;
 
-    header("Location: http://localhost/index.php");
+    header("Location: /index.php");
     exit();
 ?>

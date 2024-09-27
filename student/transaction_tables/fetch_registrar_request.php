@@ -19,11 +19,11 @@ $column = isset($_POST['column']) ? $_POST['column'] : 'request_id';
 $order = isset($_POST['order']) ? $_POST['order'] : 'asc';
 
 // Retrieve the document requests
-$documentRequestsQuery = "SELECT request_id, office_name, request_description, scheduled_datetime, status_name, amount_to_pay
+$documentRequestsQuery = "SELECT request_id, office_name, request_description, scheduled_datetime, status_name, amount_to_pay, purpose
                         FROM doc_requests
                         INNER JOIN offices ON doc_requests.office_id = offices.office_id
                         INNER JOIN statuses ON doc_requests.status_id = statuses.status_id
-                        WHERE user_id = " . $_SESSION['user_id'] . " AND office_name = 'Registrar Office'";
+                        WHERE user_id = " . $_SESSION['user_id'] . " AND request_description != 'Guidance Counseling'";
 
 if (!empty($searchTerm)) {
     $documentRequestsQuery .= " AND (request_id LIKE '%$searchTerm%'
@@ -31,7 +31,10 @@ if (!empty($searchTerm)) {
                            OR request_description LIKE '%$searchTerm%'
                            OR scheduled_datetime LIKE '%$searchTerm%'
                            OR status_name LIKE '%$searchTerm%'
-                           OR amount_to_pay LIKE '%$searchTerm%')";
+                           OR amount_to_pay LIKE '%$searchTerm%'
+                           OR purpose LIKE '%$searchTerm%'
+                           OR CONCAT(offices.office_name, ' ', statuses.status_name) LIKE '%$searchTerm%'
+                           OR CONCAT(statuses.status_name, ' ', offices.office_name) LIKE '%$searchTerm%')";
 }
 
 // Add the sorting parameters to the query
@@ -50,7 +53,21 @@ if ($result) {
     // Count the total number of records
     $totalRecordsQuery = "SELECT COUNT(*) AS total_records
                           FROM doc_requests
-                          WHERE user_id = " . $_SESSION['user_id'] . " AND office_id = 3";
+                          INNER JOIN offices ON doc_requests.office_id = offices.office_id
+                          INNER JOIN statuses ON doc_requests.status_id = statuses.status_id
+                          WHERE user_id = " . $_SESSION['user_id'] . " AND request_description != 'Guidance Counseling'";
+    if (!empty($searchTerm)) {
+        $totalRecordsQuery .= " AND (request_id LIKE '%$searchTerm%'
+                               OR office_name LIKE '%$searchTerm%'
+                               OR request_description LIKE '%$searchTerm%'
+                               OR scheduled_datetime LIKE '%$searchTerm%'
+                               OR status_name LIKE '%$searchTerm%'
+                               OR amount_to_pay LIKE '%$searchTerm%'
+                               OR purpose LIKE '%$searchTerm%'
+                               OR CONCAT(offices.office_name, ' ', statuses.status_name) LIKE '%$searchTerm%'
+                               OR CONCAT(statuses.status_name, ' ', offices.office_name) LIKE '%$searchTerm%')";
+    }
+    
     $totalRecordsResult = mysqli_query($connection, $totalRecordsQuery);
     $totalRecordsRow = mysqli_fetch_assoc($totalRecordsResult);
     $totalRecords = $totalRecordsRow['total_records'];

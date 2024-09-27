@@ -35,8 +35,10 @@ CREATE TABLE `appointment_facility` (
   `end_date_time_sched` datetime DEFAULT NULL,
   `email` varchar(50) DEFAULT NULL,
   `purpose` varchar(200) DEFAULT NULL,
-  `facility_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `facility_id` int(11) NOT NULL,
+  `orgs` varchar(100) DEFAULT NULL,
+  `admin_reason` varchar(255) DEFAULT NULL
+);
 
 --
 -- Dumping data for table `appointment_facility`

@@ -6,30 +6,37 @@
                     Payment Code
                     <i class="sort-icon fa-solid fa-caret-down"></i>
                 </th>
-                <th class="text-center doc-request-id-header sortable-header" data-column="date&time" scope="col" data-order="desc">
-                    Date requested
+                <th class="text-center doc-request-id-header sortable-header" data-column="transaction_date" scope="col" data-order="desc">
+                    Date
                     <i class="sort-icon fa-solid fa-caret-down"></i>
                 </th>
                 <th class="text-center doc-request-requestor-header sortable-header" data-column="lastName" scope="col" data-order="desc">
                     Name
                     <i class="sort-icon fa-solid fa-caret-down"></i>
                 </th>
+                <th class="text-center doc-request-office-header sortable-header" data-column="course" scope="col" data-order="desc">
+                Course/Role
+                <i class="sort-icon fa-solid fa-caret-down"></i>
+                </th>
                 <th class="text-center doc-request-student-or-client-header sortable-header" data-column="documentType" scope="col" data-order="desc">
                     Document Type
                     <i class="sort-icon fa-solid fa-caret-down"></i>
                 </th>
-                <th class="text-center doc-request-description-header sortable-header" data-column="referenceNumber" scope="col" data-order="desc">
+                <!--<th class="text-center doc-request-description-header sortable-header" data-column="referenceNumber" scope="col" data-order="desc">
                     Reference Number
                     <i class="sort-icon fa-solid fa-caret-down"></i>
-                </th>
-                <th class="text-center doc-request-amount-header sortable-header" data-column="amount" scope="col" data-order="desc">
+                </th>-->
+                <!--<th class="text-center doc-request-amount-header sortable-header" data-column="amount" scope="col" data-order="desc">
                     Amount
                     <i class="sort-icon fa-solid fa-caret-down"></i>
-                </th>
-                <th class="text-center doc-request-status-header sortable-header" data-column="image_url" scope="col" data-order="desc">
-                    Receipt
+                </th>-->
+                <th class="text-center doc-request-status-header sortable-header" data-column="status" scope="col" data-order="desc">
+                    Status
                     <i class="sort-icon fa-solid fa-caret-down"></i>
                 </th>
+                <!--<th class="text-center doc-request-status-header sortable-header" data-column="image_url" scope="col" data-order="desc">
+                    Receipt
+                </th>-->
                 <th class="text-center"></th>
             </tr>
         </thead>
@@ -39,20 +46,7 @@
     </table>
 </div>
 <div id="pagination" class="container-fluid p-0 d-flex justify-content-between w-100">
-    <div class="d-flex gap-2">
-        <div class="input-group">
-            <div class="input-group-text">Update Status:</div>
-            <select class="form-select" name="update-status" id="update-status" disabled>
-                <option value="1">Pending</option>
-                <option value="2">For Receiving</option>
-                <option value="3">For Evaluation</option>
-                <option value="4">Ready for Pickup</option>
-                <option value="5">Released</option>
-                <option value="6">Rejected</option>
-            </select>
-        </div>
-        <button id="update-status-button" class="btn btn-primary w-50" disabled><i class="fa-solid fa-pen-to-square"></i> Update</button>
-    </div>    
+      
     <nav aria-label="Page navigation">
         <div class="d-flex justify-content-between align-items-start gap-3">
             <ul class="pagination" id="pagination-links">
@@ -110,6 +104,21 @@
                 if (data.total_records > 0) {
                     for (var i = 0; i < data.payments.length; i++) {
                         var payments = data.payments[i];
+                        var imageUrl = '';
+
+                        // Check if the studentNumber is present
+                        if (payments.studentNumber) {
+                            // It is a student
+                            imageUrl = '../../../student/accounting/' + payments.image_url;
+                        } else {
+                            // It is a client
+                            imageUrl = '../../../client/accounting/' + payments.image_url;
+                        }
+
+                        // Define the options for the status dropdown
+                        var statusOptions = '<option value="Pending" ' + (payments.status === 'Pending' ? 'selected' : '') + '>Pending</option>' +
+                       '<option value="Processed" ' + (payments.status === 'Processed' ? 'selected' : '') + '>Processed</option>'+
+                       '<option value="Rejected" ' + (payments.status === 'Rejected' ? 'selected' : '') + '>Rejected</option>';
 
                         var row = '<tr>' +
                             '<td>' + 'A0-' + payments.payment_id + '</td>' +
@@ -123,10 +132,17 @@
                             }))
                             + '</td>' +
                             '<td>' + payments.lastName + ", " + payments.firstName + " " + payments.middleName + '</td>' +
+                            '<td>' + payments.course + '</td>' +
                             '<td>' + payments.documentType + '</td>' +
-                            '<td>' + payments.referenceNumber + '</td>' +
-                            '<td>' + '₱' + payments.amount + '</td>' +
-                            '<td class="text-center"><a href="../../../student/accounting/' + payments.image_url + '" target="_blank" class="btn btn-sm btn-primary">See Image</a></td></tr>';
+                            //'<td>' + payments.referenceNumber + '</td>' +
+                            //'<td>' + '₱' + payments.amount + '</td>' +
+                            '<td>' +
+                                    '<select class="form-select status-dropdown" onchange="updateStatus(this, ' + payments.payment_id + ')">' +
+                                     statusOptions +
+                                    '</select>' +
+                            '</td>' +
+                            '</tr>';
+                            //'<td class="text-center"><a href="' + imageUrl + '" target="_blank" class="btn btn-sm btn-primary">See Image</a></td></tr>';
                         tableBody.innerHTML += row;
                     }
                 }
@@ -251,4 +267,25 @@
             return " " + filterByDocTypeVal;
         }
     }
+
+    function updateStatus(selectElement, paymentId) {
+    var newStatus = selectElement.value;
+
+    // Make an AJAX request to update the status in the database
+    $.ajax({
+        url: 'tables/accounting/update_status.php', // Replace with the actual URL to update the status in the database
+        method: 'POST',
+        data: { paymentId: paymentId, status: newStatus },
+        success: function(response) {
+            // Handle the success response
+            console.log('Status updated successfully');
+        },
+        error: function() {
+            // Handle the error response
+            console.log('Error occurred while updating status');
+        }
+    });
+}
+
+
 </script>

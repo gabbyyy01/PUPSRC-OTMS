@@ -13,13 +13,17 @@ $recordsPerPage = 20;
 $startingRecord = ($page - 1) * $recordsPerPage;
 $searchTerm = isset($_POST['searchTerm']) ? $_POST['searchTerm'] : '';
 
+$selectedRequestDescriptions = isset($_POST['selectedRequestDescriptions']) ? $_POST['selectedRequestDescriptions'] : array();
+// Convert the array of selected document types to a comma-separated string
+$selectedRequestDescriptionsString = implode("','", $selectedRequestDescriptions);
+
 // Retrieve the sorting parameters from the AJAX request
 $column = isset($_POST['column']) ? $_POST['column'] : 'request_id';
 $order = isset($_POST['order']) ? $_POST['order'] : 'asc';
 
 // Retrieve the document requests
-$documentRequestsQuery = "SELECT request_id, request_description, CONCAT(DATE_FORMAT(FROM_UNIXTIME(SUBSTRING(request_id, 4)), '%c/%e/%Y, %h:%i:%s %p')) AS formatted_request_id, scheduled_datetime, status_name, amount_to_pay, attached_files, 
-                        users.first_name, users.last_name, users.middle_name, users.extension_name, user_roles.role
+$documentRequestsQuery = "SELECT request_id, request_description, purpose, CONCAT(DATE_FORMAT(FROM_UNIXTIME(SUBSTRING(request_id, 4)), '%c/%e/%Y, %h:%i:%s %p')) AS formatted_request_id, scheduled_datetime, status_name, amount_to_pay, attached_files, 
+                        users.first_name, users.last_name, users.middle_name, users.extension_name, user_roles.role, doc_requests.user_id AS user_id
                         FROM doc_requests
                         INNER JOIN users ON doc_requests.user_id = users.user_id
                         INNER JOIN user_roles ON users.user_role = user_roles.user_role_id
@@ -33,7 +37,8 @@ if (!empty($searchTerm)) {
                            OR users.last_name LIKE '%$searchTerm%'
                            OR users.middle_name LIKE '%$searchTerm%'
                            OR users.extension_name LIKE '%$searchTerm%'
-                           OR request_description LIKE '%$searchTerm%'
+                           OR request_description IN ('$selectedRequestDescriptionsString')
+                           OR purpose LIKE '%$searchTerm%'
                            OR user_roles.role LIKE '%$searchTerm%'
                            OR scheduled_datetime LIKE '%$searchTerm%'
                            -- CONCAT name and request_description combinations
@@ -89,7 +94,8 @@ if ($result) {
                                OR users.last_name LIKE '%$searchTerm%'
                                OR users.middle_name LIKE '%$searchTerm%'
                                OR users.extension_name LIKE '%$searchTerm%'
-                               OR request_description LIKE '%$searchTerm%'
+                               OR request_description IN ('$selectedRequestDescriptionsString')
+                               OR purpose LIKE '%$searchTerm%'
                                OR user_roles.role LIKE '%$searchTerm%'
                                OR scheduled_datetime LIKE '%$searchTerm%'
                                -- CONCAT name and request_description combinations

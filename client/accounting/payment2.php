@@ -1,7 +1,7 @@
 <!-- INSERT PHP SECTION -->
 <?php
 $office_name = "Accounting Office";
-$servername = "localhost";
+$servername = "192.168.84.183";
 $username = "root";
 $password = "";
 $dbname = "otms_db";
@@ -18,7 +18,7 @@ $dbname = "otms_db";
     <title>Accounting Office - Landing Page</title>
     <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/payment2.css">
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
     <!-- Loading page -->
@@ -49,17 +49,17 @@ $dbname = "otms_db";
     </div>
 
   
-    <div class="container-fluid text-center p-4">
+    <div class="container-fluid text-center">
         <!--Start of content-->
-        <div class="container-fluid-form">
+        <div class="m-auto">
             <form id="studentForm" method="post" class="row g-3 needs-validation" novalidate>
 
                 
-                <div class="col-12 payment-summary">
-                    <h1> Payment Summary </h1>
+                <div class="col-12 payment-summary" id="payment-summary">
+                    <h1> Payment Voucher </h1>
                     <?php
                     include '../../conn.php';
-                
+            
 
                     // Check if a session has already been started
                     if (session_status() == PHP_SESSION_NONE) {
@@ -70,7 +70,7 @@ $dbname = "otms_db";
                      date_default_timezone_set('Asia/Manila');
 
                     // Retrieve the latest payment data from the database
-                    $paymentQuery = "SELECT payment_id, firstName, middleName, lastName, course, documentType, amount, referenceNumber
+                    $paymentQuery = "SELECT payment_id, firstName, middleName, lastName, course, documentType /*amount, referenceNumber */
                                     FROM student_info
                                     WHERE firstName = '" . $_SESSION['first_name'] . "'
                                     ORDER BY payment_id DESC
@@ -86,7 +86,7 @@ $dbname = "otms_db";
                         <tbody>
                             <tr>
                                 <th>Payment Code</th>
-                                <td>AO-<?php echo $paymentData['payment_id']; ?></td>
+                                <td> AO-<?php echo $paymentData['payment_id']; ?></td>
                             </tr>
                             <tr>
                                 <th>First Name</th>
@@ -100,22 +100,23 @@ $dbname = "otms_db";
                                 <th>Last Name</th>
                                 <td><?php echo $paymentData['lastName']; ?></td>
                             </tr>
+                    
                             <tr>
-                                <th>Course</th>
+                                <th>Role</th>
                                 <td><?php echo $paymentData['course']; ?></td>
                             </tr>
                             <tr>
                                 <th>Document Type</th>
                                 <td><?php echo $paymentData['documentType']; ?></td>
                             </tr>
-                            <tr>
+                            <!--<tr>
                                 <th>Amount</th>
                                 <td><?php echo $paymentData['amount']; ?></td>
                             </tr>
                             <tr>
                                 <th>Reference Number</th>
                                 <td><?php echo $paymentData['referenceNumber']; ?></td>
-                            </tr>
+                            </tr> -->
                             <tr>
                                 <th>Date</th>
                                 <td><?php echo date('Y-m-d'); ?></td>
@@ -129,18 +130,28 @@ $dbname = "otms_db";
                     }
                     ?>
                 </div>
-
-
-
-                <div class="col-12">
-                    <a class="btn btn-primary next-button" href="../accounting.php" type="submit">Accounting Office</a>
-                </div>
-
             </form>
         </div>
-        <script src="#"></script>
-        <script src="../../loading.js"></script>
-	<script src="../../saved_settings.js"></script>
+        <div class="col-12 w-75 mt-5 pb-5 m-auto">
+            <p class="mb-3">Please present this payment voucher to the cashier to complete your transaction. You may have to wait for a few days until your document request is ready for pickup. You can check the status any time on <b>My Transactions</b> page.</p>
+            <button class="btn btn-primary next-button" type="button" onclick="takeScreenshot()"><i class="fa-solid fa-download"></i> Save</button>
+            <a class="btn btn-primary next-button" href="../transactions.php">My Transactions</a>
+        </div>
     </div>
+    <script src="../../loading.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+    <script>
+        var takeScreenshot = function() {
+            html2canvas(document.getElementById("payment-summary"), {
+                onrendered: function (canvas) {
+                    var a = document.createElement('a');
+                    a.href = canvas.toDataURL("image/jpeg").replace("image/jpeg", "image/octet-stream");
+                    a.download = 'payment-voucher.jpg';
+                    a.click();
+                }
+            });
+        }
+    </script>
+    <script src="../../saved_settings.js"></script>
 </body>
 </html>

@@ -1,77 +1,3 @@
-<!-- INSERT PHP SECTION -->
-<?php
-$office_name = 'Accounting Office';
-include '../navbar.php';
-include '../../conn.php';
-
-if (isset($_POST['submit'])) {
-    // Retrieve form data
-    $course = $_POST['course'];
-    $documentType = $_POST['documentType'];
-    $firstName = $_POST['firstName'];
-    $middleName = $_POST['middleName'];
-    $lastName = $_POST['lastName'];
-    $amount = $_POST['amount'];
-    $referenceNumber = $_POST['referenceNumber'];
-    $userId = $_SESSION['user_id'];
-
-    // Handle file upload
-    if (isset($_FILES['receiptImage'])) {
-        $file = $_FILES['receiptImage'];
-        $fileName = $file['name'];
-        $fileTmpName = $file['tmp_name'];
-        $fileSize = $file['size'];
-        $fileError = $file['error'];
-        $fileType = $file['type'];
-
-        // Check if the file is uploaded successfully
-        if ($fileError === UPLOAD_ERR_OK) {
-            // Insert the data into the database
-            $sql = "INSERT INTO student_info (user_id, course, documentType, firstName, middleName, lastName, amount, referenceNumber) 
-                    VALUES ('$userId', '$course', '$documentType', '$firstName', '$middleName', '$lastName', '$amount', '$referenceNumber')";
-
-            if ($connection->query($sql) === TRUE) {
-                // Get the last inserted ID
-                $lastInsertedId = $connection->insert_id;
-
-                // Generate a new filename using the last inserted ID, firstName, and lastName
-                $imageFileName = "payment_" . $lastInsertedId . "_" . $firstName . '_' . $lastName . '.' . pathinfo($fileName, PATHINFO_EXTENSION);
-
-                // Move the uploaded image to the desired directory with the new filename
-                $targetPath = 'uploads/' . $imageFileName;
-                if (move_uploaded_file($fileTmpName, $targetPath)) {
-                    // Update the image URL in the database
-                    $updateSql = "UPDATE student_info SET image_url = '$targetPath' WHERE payment_id = '$lastInsertedId'";
-                    if ($connection->query($updateSql) === TRUE) {
-                        $_SESSION['payment_id'] = $lastInsertedId;
-                        header("Location: payment2.php");
-                        exit();
-                    } else {
-                        echo "Error updating image URL: " . $connection->error;
-                    }
-                } else {
-                    echo "Error moving uploaded file.";
-                }
-            } else {
-                echo "Error inserting data: " . $connection->error;
-            }
-        } else {
-            echo "Error uploading file. Error code: " . $fileError;
-        }
-    } else {
-        echo "No file uploaded.";
-    }
-
-    $connection->close();
-}
-?>
-
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -81,7 +7,7 @@ if (isset($_POST['submit'])) {
     <title>Accounting Office - Landing Page</title>
     <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/payment1.css">
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
     <!-- Loading page -->
@@ -95,8 +21,87 @@ if (isset($_POST['submit'])) {
     <script src="../../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>    
 </head>
 <body>
-<?php
+    <?php
+    $office_name = "Accounting Office";
+    include '../navbar.php';
     include '../../breadcrumb.php';
+    include '../../conn.php';
+
+    if (isset($_POST['submit'])) {
+        // Retrieve form data
+        $course = $_POST['course'];
+        $documentType = $_POST['documentType'];
+        $firstName = $_POST['firstName'];
+        $middleName = $_POST['middleName'];
+        $lastName = $_POST['lastName'];
+        //$amount = $_POST['amount'];
+        //$referenceNumber = $_POST['referenceNumber'];
+        $userId = $_SESSION['user_id'];
+
+        // Insert the data into the database
+        $sql = "INSERT INTO student_info (user_id, course, documentType, firstName, middleName, lastName) 
+                VALUES ('$userId', '$course', '$documentType', '$firstName', '$middleName', '$lastName')";
+
+        if ($connection->query($sql) === TRUE) {
+            // Get the last inserted ID
+            $lastInsertedId = $connection->insert_id;
+        
+            $_SESSION['payment_id'] = $lastInsertedId;
+            echo '<script>window.location.href = "payment2.php";</script>';
+            exit();
+        } else {
+            echo "Error inserting data: " . $connection->error;
+        }
+
+        // Handle file upload
+        /*if (isset($_FILES['receiptImage'])) {
+            $file = $_FILES['receiptImage'];
+            $fileName = $file['name'];
+            $fileTmpName = $file['tmp_name'];
+            $fileSize = $file['size'];
+            $fileError = $file['error'];
+            $fileType = $file['type'];
+
+            // Check if the file is uploaded successfully
+            if ($fileError === UPLOAD_ERR_OK) {
+                // Insert the data into the database
+                $sql = "INSERT INTO student_info (user_id, course, documentType, firstName, middleName, lastName, studentNumber, amount, referenceNumber) 
+                        VALUES ('$userId', '$course', '$documentType', '$firstName', '$middleName', '$lastName', '$studentNumber', '$amount', '$referenceNumber')";
+
+                if ($connection->query($sql) === TRUE) {
+                    // Get the last inserted ID
+                    $lastInsertedId = $connection->insert_id;
+
+                    // Generate a new filename using the last inserted ID, firstName, and lastName
+                    $imageFileName = "payment_" . $lastInsertedId . "_" . $firstName . '_' . $lastName . '.' . pathinfo($fileName, PATHINFO_EXTENSION);
+
+                    // Move the uploaded image to the desired directory with the new filename
+                    $targetPath = 'uploads/' . $imageFileName;
+                    if (move_uploaded_file($fileTmpName, $targetPath)) {
+                        // Update the image URL in the database
+                        $updateSql = "UPDATE student_info SET image_url = '$targetPath' WHERE payment_id = '$lastInsertedId'";
+                        if ($connection->query($updateSql) === TRUE) {
+                            $_SESSION['payment_id'] = $lastInsertedId;
+                            header("Location: payment2.php");
+                            exit();
+                        } else {
+                            echo "Error updating image URL: " . $connection->error;
+                        }
+                    } else {
+                        echo "Error moving uploaded file.";
+                    }
+                } else {
+                    echo "Error inserting data: " . $connection->error;
+                }
+            } else {
+                echo "Error uploading file. Error code: " . $fileError;
+            }
+        } else {
+            echo "No file uploaded.";
+        } */
+
+        $connection->close();
+    }
     ?>
     <div class="container-fluid p-4">
         <?php
@@ -129,53 +134,44 @@ if (isset($_POST['submit'])) {
   <form action="" id="" method="post" class="row g-3 needs-validation" autocomplete="off" enctype="multipart/form-data" onsubmit="validateForm(event)">
     <div class="col-12 col-md-6">
       
-      <h4>1. Scan QR Code</h4>
-      <h4>2. Upload Screenshot of Payment</h4>
-      <h4>3. Input Student Details</h4>
-      <p style="color: red;">Note: CASH PAYMENT receipts must also be uploaded.</p>
+      <h4>1. Select Options</h4>
+      <h4>2. Confirm Details</h4>
+      <h4>3. Submit and Save a Copy of Payment Voucher</h4>
+      <p style="color: red;">Note: Ensure all information are correct before submitting</p>
 
-    <div class="box">
-      <div class="upload-container">
-        <label for="receiptImage" class="form-label">Upload Receipt Here</label>
-        <input type="file" class="form-control upload-button" id="receiptImage" name="receiptImage" accept="image/*" required>
-        <div class="invalid-feedback">
-          Please upload a valid image file.
+      <!-- <div class="box">
+        <div class="upload-container">
+          <label for="receiptImage" class="form-label">Upload Receipt Here</label>
+          <input type="file" class="form-control upload-button" id="receiptImage" name="receiptImage" accept="image/*" required>
+          <div class="invalid-feedback">
+            Please upload a valid image file.
+          </div>
         </div>
-      </div>
-    </div>
-    </div>
+      </div> -->
+    </div> 
 
-    <div class="col-12 col-md-6 qr-text">
+    <!-- <div class="col-12 col-md-6 qr-text">
       <div class="qr-details">
         <p>GCash_Receiver_Name</p>
         <p>012-345-6789</p>
       </div>
       <img src="images/qr.png" alt="QR Code" class="qr-image">
-    </div>
+    </div> -->
 
 
     <div class="col-12 ">
       <div class="row">
         <div class="col-md-6">
           <div class="form-group">
-            <label for="course" class="form-label">Course <code>*</code></label>
+            <label for="course" class="form-label">Role <code>*</code></label>
             <select class="form-select" id="" name="course" required>
-              <option value="" disabled selected hidden>Select Course</option>
-              <option value="Bachelor of Science in Electronics Engineering">Bachelor of Science in Electronics Engineering</option>
-              <option value="Bachelor of Science in Business Administration Major in Human Resource Management">Bachelor of Science in Business Administration Major in Human Resource Management</option>
-              <option value="Bachelor of Science in Business Administration Major in Marketing Management">Bachelor of Science in Business Administration Major in Marketing Management</option>
-              <option value="Bachelor in Secondary Education Major in English">Bachelor in Secondary Education Major in English</option>
-              <option value="Bachelor in Secondary Education Major in Filipino">Bachelor in Secondary Education Major in Filipino</option>
-              <option value="Bachelor in Secondary Education Major in Mathematics">Bachelor in Secondary Education Major in Mathematics</option>
-              <option value="Bachelor of Science in Industrial Engineering">Bachelor of Science in Industrial Engineering</option>
-              <option value="Bachelor of Science in Information Technology">Bachelor of Science in Information Technology</option>
-              <option value="Bachelor of Science in Psychology">Bachelor of Science in Psychology</option>
-              <option value="Bachelor in Technology And Livelihood Education Major in Home Economics">Bachelor in Technology And Livelihood Education Major in Home Economics</option>
-              <option value="Bachelor of Science in Management Accounting">Bachelor of Science in Management Accounting</option>
+              <option value="" disabled selected hidden>Select Role</option>
+              <option value="Client">Client</option>
+              <option value="Alumni">Alumni</option>
               <!-- Add more options as needed -->
             </select>
             <div class="invalid-feedback">
-              Please select a course.
+              Please select an role.
             </div>
           </div>
         </div>
@@ -244,7 +240,7 @@ if (isset($_POST['submit'])) {
       </div>
     </div>
 
-    <div class="col-12 col-md-6">
+    <!-- <div class="col-12 col-md-6">
       <div class="form-groups">
         <label for="amount" class="form-label">Amount <code>*</code></label>
         <input type="text" class="form-control" id="amount" name="amount" value="" required oninput="validateAmount(this)">
@@ -252,9 +248,9 @@ if (isset($_POST['submit'])) {
           Please provide a valid amount.
         </div>
       </div>
-    </div>
+    </div> -->
 
-    <div class="col-12 col-md-6">
+    <!-- <div class="col-12 col-md-6">
       <div class="form-groups">
         <label for="referenceNumber" class="form-label">Reference Number <code>*</code></label>
         <input type="text" class="form-control" id="referenceNumber" name="referenceNumber" value="" required oninput="validateReferenceNumber(this)" maxlength="20" >
@@ -262,7 +258,7 @@ if (isset($_POST['submit'])) {
           Please provide the reference number.
         </div>
       </div>
-    </div>
+    </div> -->
 
     
     <div class="d-flex justify-content-between">
@@ -509,6 +505,7 @@ function validateForm(event) {
 
 
 </script>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="#"></script>
 <script src="../../loading.js"></script>

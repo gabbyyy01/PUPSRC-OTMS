@@ -39,9 +39,7 @@
                     Status
                     <i class="sort-icon fa-solid fa-caret-down"></i>
                 </th>
-                <!-- <th class="text-center doc-request-status-header" scope="col">
-                    Generate Slip
-                </th> -->
+                <th></th>
             </tr>
         </thead>
         <tbody id="table-body">
@@ -89,6 +87,47 @@
     </div>
 </div>
 <!-- End of view purpose modal -->
+<!-- Create reason for rejected status modal -->
+<div id="createReasonModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="createReasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createReasonModalLabel">Create Reason</h5>
+            </div>
+            <div class="modal-body">
+                <form id="createReasonForm">
+                    <div class="mb-3">
+                        <label for="reason" class="form-label">Reason:</label>
+                        <textarea class="form-control" id="reason" name="reason" rows="3" maxlength="255"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="submitReasonBtn">Submit</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of reason for rejection modal -->
+<!-- Modal for displaying reason for cancellation -->
+<div class="modal fade" id="viewReasonModal" tabindex="-1" role="dialog" aria-labelledby="viewReasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewReasonModalLabel">Reason for Cancellation</h5>
+            </div>
+            <div class="modal-body">
+                <p id="cancellationReasonText" style= "overflow-wrap: break-word;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of view reason modal -->
+
 <br><br><br>
 
 <div class="container-fluid text-center p-4">
@@ -157,6 +196,23 @@
 </div>
 
 <script>
+    function getStatusBadgeClass(status) {
+        switch (status) {
+            case 'Released':
+                return 'bg-success';
+            case 'Rejected':
+                return 'bg-danger';
+            case 'For Receiving':
+                return 'bg-warning text-dark';
+            case 'For Evaluation':
+                return 'bg-primary';
+            case 'Ready for Pickup':
+                return 'bg-info';
+            default:
+                return 'bg-dark';
+        }
+    }
+
        function editEquipment(equipmentId) {
         // Get the modal element
         var modal = document.getElementById('editEquipmentModal');
@@ -260,22 +316,7 @@
 
 
 <script>
-    function getStatusBadgeClass(status) {
-        switch (status) {
-            case 'Released':
-                return 'bg-success';
-            case 'Rejected':
-                return 'bg-danger';
-            case 'For Receiving':
-                return 'bg-warning text-dark';
-            case 'For Evaluation':
-                return 'bg-primary';
-            case 'Ready for Pickup':
-                return 'bg-info';
-            default:
-                return 'bg-dark';
-        }
-    }
+    
 
     function handlePagination(page, searchTerm = '', column = 'request_id', order = 'desc') {
         // Show the loading indicator
@@ -336,10 +377,22 @@
 
                             '<td class="text-center">' +
                             '<span class="badge rounded-pill ' + getStatusBadgeClass(requestEquip.status_name) + '">' + requestEquip.status_name + '</span>' +
-                            '</td>' +
+                            '</td>';
+                         
+                            if (requestEquip.status_name === 'Cancelled') {
+                                row += '<td class="text-center"><a href="#" class="btn btn-primary btn-sm view-reason" data-status="' + requestEquip.status_name + '" data-request-id="' + requestEquip.request_id + '"><i class="fa-solid fa-eye"></i> View Reason </a></td>';
+                            } else if (requestEquip.status_name === 'Rejected') {
+                                row += '<td class="text-center"><a href="#" class="btn btn-primary btn-sm create-reason" data-status="' + requestEquip.status_name + '" data-request-id="' + requestEquip.request_id + '"><i class="fa-solid fa-pen-to-square"></i> Create Reason </a></td>';
+                            } else {
+                                row += '<td></td>';
+                            }
 
-                            '</tr>';
-                        tableBody.innerHTML += row;
+                            row += '</tr>';
+
+                            
+
+
+                            tableBody.innerHTML += row;
                     }
                 } else {
                     var noRecordsRow = '<tr><td class="text-center table-light p-4" colspan="12">No Transactions</td></tr>';
@@ -357,6 +410,9 @@
                         paginationLinks.innerHTML += pageLink;
                     }
                 }
+
+                // Call the function to disable checkboxes initially
+                updateCheckboxStatus();
             },
             error: function() {
                 // Hide the loading indicator in case of an error
@@ -411,9 +467,78 @@
             handlePagination(1, searchTerm + filterStatus(), 'request_id', 'desc');
         });
 
+
+
+        // Create Reason button click listener
+        $(document).on('click', '.create-reason', function(event) {
+                var requestId = event.target.getAttribute('data-request-id');
+                
+                // Set the request ID and office in the modal
+                $('#createReasonModal').data('request-id', requestId);
+                
+                // Show the modal
+                $('#createReasonModal').modal('show');
+            });
+
+        // Submit Reason button click listener
+        $('#submitReasonBtn').on('click', function() {
+                var requestId = $('#createReasonModal').data('request-id');
+                var reason = $('#reason').val();
+                
+                // Make an AJAX request to update the purpose in the database
+                $.ajax({
+                    url: 'tables/administrative/update_create_reason_equip.php', // Your PHP script to handle the update
+                    method: 'POST',
+                    data: {
+                        request_id: requestId,
+                        reason: reason
+                    },
+                    success: function(response) {
+                        // Handle success response
+                        
+                        // Close the modal
+                        $('#createReasonModal').modal('hide');
+                        
+                        // Refresh the table
+                        handlePagination(1, '', 'request_id', 'desc');
+                    },
+                    error: function() {
+                        // Handle error
+                        console.log('Error occurred while updating reason.');
+                    }
+                });
+            });
+
+            $(document).on('click', '.create-reason', function(event) {
+            var requestId = event.target.getAttribute('data-request-id');
+            var office = event.target.getAttribute('data-office');
+            
+            // Set the request ID and office in the modal
+            $('#createReasonModal').data('request-id', requestId);
+            
+            // Fetch the existing purpose and populate the textarea
+            $.ajax({
+                url: 'tables/administrative/fetch_reason_equip.php', // Your PHP script to fetch the existing purpose
+                method: 'POST',
+                data: {
+                    request_id: requestId
+                },
+                success: function(response) {
+                    // Update the textarea with the existing purpose
+                    $('#reason').val(response);
+                    
+                    // Show the modal
+                    $('#createReasonModal').modal('show');
+                },
+                error: function() {
+                    // Handle error
+                    console.log('Error occurred while fetching existing purpose.');
+                }
+            });
+        });
+
         
 
-        // Update status button listener
         $('#update-status-button').on('click', function() {
             var checkedCheckboxes = $('input[name="request-checkbox"]:checked');
             var requestIds = checkedCheckboxes.map(function() {
@@ -421,26 +546,50 @@
             }).get();
             var statusId = $('#update-status').val(); // Get the selected status ID
 
-            $.ajax({
-                url: 'tables/administrative/update_request_equipment.php',
-                method: 'POST',
-                data: { requestIds: requestIds, statusId: statusId }, // Include the selected status ID in the data
-                success: function(response) {
-                    // Handle the success response
-                    console.log('Status updated successfully');
+                $.ajax({
+                    url: 'tables/administrative/update_request_equipment.php',
+                    method: 'POST',
+                    data: { requestIds: requestIds, statusId: statusId },
+                    success: function(response) {
+                        // Handle the success response
+                        console.log('Status updated successfully');
 
-                    // Refresh the table after status update
-                    handlePagination(1, '', 'request_id', 'desc');
-                },
-                error: function() {
-                    // Handle the error response
-                    console.log('Error occurred while updating status');
-                }
+                        // Deduct equipment quantity for each selected request
+                        if (statusId === '5') {
+                            deductEquipmentQuantity(requestIds);
+                        } else {
+                            // Refresh the table after status update
+                            handlePagination(1, '', 'request_id', 'desc');
+                        }
+                    },
+                    error: function() {
+                        // Handle the error response
+                        console.log('Error occurred while updating status');
+                    }
+                });
             });
-        });
 
-                // Checkbox change listener using event delegation
-                $(document).on('change', 'input[name="request-checkbox"]', function() {
+            // Function to deduct equipment quantity
+            function deductEquipmentQuantity(requestIds) {
+                $.ajax({
+                    url: 'tables/administrative/deduct_equip_quantity.php',
+                    method: 'POST',
+                    data: { requestIds: requestIds },
+                    success: function(response) {
+                        console.log('Equipment quantity deducted successfully.');
+                        // Reload the page to refresh the table
+                        location.reload();
+                    },
+                    error: function() {
+                        console.log('Error occurred while deducting equipment quantity.');
+                    }
+                });
+            }
+
+    });
+
+            // Checkbox change listener using event delegation
+            $(document).on('change', 'input[name="request-checkbox"]', function() {
             var checkedCheckboxes = $('input[name="request-checkbox"]:checked');
             var updateButton = $('#update-status-button');
             var statusDropdown = $('#update-status');
@@ -454,7 +603,54 @@
                 statusDropdown.prop('disabled', true);
             }
         });
+
+
+    //Function to disable checkbox on cancelled status
+    function updateCheckboxStatus() {
+    var checkboxes = $('input[name="request-checkbox"]');
+
+        checkboxes.each(function() {
+            var row = $(this).closest('tr');
+            var statusCell = row.find('.rounded-pill');
+            var status = statusCell.text().trim().toLowerCase();
+
+            // Disable the checkbox based on specific statuses
+            if ( status === 'cancelled') 
+            {
+                $(this).prop('disabled', true);
+            } else {
+                $(this).prop('disabled', false);
+            }
+        });
+    }
+
+    // Event Listener for View Reason Button
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('view-reason')) {
+            var requestId = event.target.getAttribute('data-request-id');
+            openViewReasonModal(requestId);
+        }
     });
+
+    // Function to Open View Reason Modal
+    function openViewReasonModal(requestId) {
+        // Make an AJAX request to fetch the reason for cancellation
+        $.ajax({
+            url: 'tables/administrative/get_equip_cancel_reason.php',
+            method: 'POST',
+            data: { request_id: requestId },
+            success: function (response) {
+                // Update the modal content with the reason for cancellation
+                $('#cancellationReasonText').text(response);
+
+                // Open the View Reason modal
+                $('#viewReasonModal').modal('show');
+            },
+            error: function (error) {
+                console.error('Error fetching cancellation reason:', error.responseText);
+            }
+        });
+    }
 
     function filterStatus() {
             var filterByStatusVal = $('#filterByStatus').val();
@@ -476,6 +672,9 @@
                     break;
                 case '6':
                     return ' rejected';
+                    break;
+                case '7':
+                    return ' cancelled';
                     break;
                 default:
                     return '';

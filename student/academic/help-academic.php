@@ -11,7 +11,7 @@
     <link rel="icon" type="image/x-icon" href="../../assets/favicon.ico">
     <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../style.css">
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
     <script src="../../node_modules/jquery/dist/jquery.min.js"></script>
     <script src="../../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </head>
@@ -32,14 +32,14 @@
     $stmt->close();
 
     if(isset($_POST['academicFeedbackSubmit'])) {
-        $query = "INSERT INTO academic_feedbacks (user_id, email, feedback_text)
+        $query = "INSERT INTO acad_feedbacks (user_id, email, feedback_text)
         VALUES (?, ?, ?)";
 
         $stmt = $connection->prepare($query);
-        $stmt->bind_param("iss", $_SESSION['user_id'], $userData[0]['email'], $_POST['academicFeedbackText']);
+        $stmt->bind_param("iss", $_SESSION['user_id'], $userData[0] ['email'], $_POST['academicFeedbackText']);
         if ($stmt->execute()) {
             $_SESSION['success'] = true;
-            // header("Location: http://localhost/student/academic/success.php");
+            // header("Location: /student/academic/success.php");
         }
         else {
             var_dump($stmt->error);
@@ -276,14 +276,10 @@
         messageTextarea.addEventListener('input', function() {
             const inputValue = messageTextarea.value;
 
-            const pattern = /^[a-zA-Z0-9]{1,}\s[a-zA-Z0-9\s]*$/;
-            const isValid = pattern.test(inputValue);
-
-            if (isValid) {
+            if (inputValue.trim() != '') {
                 messageTextarea.setCustomValidity('');
                 messageTextarea.classList.remove('is-invalid');
             } else {
-                messageTextarea.setCustomValidity('Only letters and numbers are allowed.');
                 messageTextarea.classList.add('is-invalid');
             }
         });
@@ -304,7 +300,7 @@
     if (isset($_SESSION['success'])) {
         ?>
         <script>
-            // window.location.href="http://localhost/student/guidance/clearance.php";
+            // window.location.href="/student/guidance/clearance.php";
             $(document).ready(function() {
                 $("#successModal").modal("show");
             })

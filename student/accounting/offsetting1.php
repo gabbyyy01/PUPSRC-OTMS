@@ -1,7 +1,7 @@
 <?php
 session_start();
 $office_name = "Accounting Office";
-include "conn.php";
+include "../../conn.php";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $first_name = $_POST["first_name"];
     $last_name = $_POST["last_name"];
@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $birth_date = $_POST["birth_date"];
     $sql = "SELECT * FROM users WHERE first_name = '$first_name' && last_name = '$last_name' && student_no = '$student_no' &&  birth_date = '$birth_date'";
     
-    $result = $conn->query($sql);
+    $result = $connection->query($sql);
 
     if ($result->num_rows == 1) {
        $row = mysqli_fetch_array($result);
@@ -40,16 +40,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 <style>
-      /*alert*/
-.success-alert {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px;
-    text-align: center;
-    margin-bottom: 10px;
-    display: none; 
-}
 .custom-alert {
+    color: #020403;
     position: fixed;
     top: 50%;
     left: 50%;
@@ -63,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     display: none;
     z-index: 9999;
     text-align: center;
-}
+    }
 
 .custom-alert-message {
 font-weight: bold;
@@ -83,7 +75,6 @@ cursor: pointer;
 background-color: #e9ecef;
 }
 </style>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -92,8 +83,8 @@ background-color: #e9ecef;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accounting Office - Offsetting</title>
     <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/payment1.css">
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="css/offsetting1.css">
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
@@ -111,6 +102,7 @@ background-color: #e9ecef;
 
 </head>
 <body>
+    <div class="wrapper">
     <?php
     @include '../navbar.php';
     include '../../breadcrumb.php';
@@ -128,7 +120,7 @@ background-color: #e9ecef;
     <div class="fetch-data">
         <?php
         $user_id = $_SESSION["user_id"];
-                    $select = mysqli_query($conn, "SELECT * FROM users WHERE user_id = '$user_id'") or die ('query failed');
+                    $select = mysqli_query($connection, "SELECT * FROM users WHERE user_id = '$user_id'") or die ('query failed');
                     if(mysqli_num_rows($select) > 0){
                         $fetch = mysqli_fetch_assoc($select);
                     }
@@ -164,18 +156,29 @@ background-color: #e9ecef;
             </div>
             <div class="col-md-6">
                 <label for="birthdate" class="form-label">Birth Date<code>*</code></label>
-                <input type="date" class="form-control" id="birthdate"name="birth_date" required value="<?php echo isset($fetch['birth_date']) ? $fetch['birth_date'] : ''; ?>">
+                <input type="date" class="form-control" id="birthdate"name="birth_date" required value="<?php echo isset($fetch['birth_date']) ? $fetch['birth_date'] : ''; ?>" readonly>
                 <div class="invalid-feedback">
                     Please provide a birth date.
                 </div>
             </div>
-            <div class="col-12">
+            <div class="col-12" style="display: flex; justify-content: space-between">
             <a class ="btn btn-primary back-button" href="../accounting.php">Back</a>
-                <button class="btn btn-primary next-button" type="submit" name="next"onclick="validateForm(event)">Next</button>
+            <div class="m-2"></div>
+                <button class="btn btn-primary back-button" type="submit" name="next"onclick="validateForm(event)">Next</button>
             </div>
+             <div class="alert alert-info" role="alert">
+                                <h4 class="alert-heading">
+                                <i class="fa-solid fa-circle-info"></i> Reminder
+                                </h4>
+                                <p>Make sure that the information provided in every field match the correct details of the account</p>
+                                <p>This is a confirmation of your account’s validity</p>
+                                <p>You may begin with <b>Offsetting</b> once you pressed the Next button</p>
+                            </div>
         </form>
     </div>
     </div>
+    </div>
+    <?php include '../../footer.php'; ?>
     <script src="js/offsetting_script.js"></script>
     <script src="../../saved_settings.js"></script>
     <script src="../../loading.js"></script>

@@ -17,7 +17,7 @@
         <div class="loading-spinner"></div>
         <p class="loading-text display-3 pt-3">Getting things ready...</p>
     </div>
-    <script src="https://kit.fontawesome.com/fe96d845ef.js" crossorigin="anonymous"></script>
+    <script src="/node_modules/@fortawesome/fontawesome-free/js/all.min.js" crossorigin="anonymous"></script>
     <script src="../node_modules/jquery/dist/jquery.min.js"></script>
     <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </head>
@@ -29,7 +29,7 @@
 
             // Avoid admin user from accessing other office pages
             if ($_SESSION['office_name'] != "Guidance Office") {
-                header("Location: http://localhost/admin/redirect.php");
+                header("Location: /admin/redirect.php");
             }
 
             $table = 'document_request';
@@ -49,6 +49,7 @@
                                     <select id="transactionTableSelect" class="form-select" name="table-select">
                                         <option value="document_request" <?php if ($table === 'document_request') echo 'selected'; ?>>Document Requests</option>
                                         <option value="scheduled_appointments" <?php if ($table === 'scheduled_appointments') echo 'selected'; ?>>Counseling Schedules</option>
+                                        <option value="student_records" <?php if ($table === 'student_records') echo 'selected'; ?>>Student Records</option>
                                         <option value="guidance_feedbacks" <?php if ($table === 'guidance_feedbacks') echo 'selected'; ?>>Feedbacks</option>
                                     </select>
                                     <button id="tableSelectSubmit" type="submit" name="filter-button" class="btn btn-primary"><i class="fas fa-refresh"></i> Load Table</button>
@@ -72,6 +73,12 @@
                                     </select>
                                 </div>
                                 <button type="button" id="filterButton" name="filterButton" class="btn btn-primary mt-2"><i class="fa-solid fa-filter"></i> Filter</button>
+                                <?php if ($table === 'document_request') { ?>
+                                    <button id="generate-doc-requests" name="generate-doc-requests" class="btn btn-primary mt-2"><i class="fas fa-file-pdf"></i> Generate Document Request Report</button>
+                                <?php } ?>
+                                <?php if ($table === 'scheduled_appointments') { ?>
+                                    <button id="generate-counseling" name="generate-counseling" class="btn btn-primary mt-2"><i class="fas fa-file-pdf"></i> Generate Counseling Schedule Report</button>
+                                <?php } ?>
                             </div>
                         </div>
                         <div class="mt-2">
@@ -95,6 +102,9 @@
                             elseif ($table === 'scheduled_appointments') {
                                 include 'tables/guidance/counseling_appointments.php';
                             }
+                            elseif ($table === 'student_records') {
+                                include 'tables/guidance/student_records.php';
+                            }
                             elseif ($table === 'guidance_feedbacks') {
                                 include 'tables/guidance/feedbacks_table.php';
                             }
@@ -117,6 +127,73 @@
     </script>
     <script>
         $(document).ready(function() {
+            $("#generate-doc-requests").on('click', function() {
+                $("#confirmGenerateReportModal").modal("show");
+            });
+            $("#generate-counseling").on('click', function() {
+                $("#confirmGenerateReportModal").modal("show");
+            });
+
+            // "dr" stands for document request, "gc" for guidance counseling
+            $('#generate-dr-to-pdf-btn').on('click', function() {
+                var selectedStatus = $("#filterByStatus").val();
+                var selectedDocType = $("#filterByDocType").val();
+                var searchValue = $("#search-input").val(); // Get the value of the search input
+
+                // Encode the selected values and search query to be URL-safe
+                var encodedStatus = encodeURIComponent(selectedStatus);
+                var encodedDocType = encodeURIComponent(selectedDocType);
+                var encodedSearchValue = encodeURIComponent(searchValue);
+
+                // Construct the URL with the updated parameters
+                var link = "tables/guidance/doc_request_reports.php?status=" + encodedStatus + "&doc_type=" + encodedDocType + "&search=" + encodedSearchValue;
+                
+                window.open(link, '_blank');
+            });
+
+            $('#generate-dr-to-csv-btn').on('click', function() {
+                var selectedStatus = $("#filterByStatus").val();
+                var selectedDocType = $("#filterByDocType").val();
+                var searchValue = $("#search-input").val();
+
+                var encodedStatus = encodeURIComponent(selectedStatus);
+                var encodedDocType = encodeURIComponent(selectedDocType);
+                var encodedSearchValue = encodeURIComponent(searchValue);
+
+                var link = "tables/guidance/doc_request_csv.php?status=" + encodedStatus + "&doc_type=" + encodedDocType + "&search=" + encodedSearchValue;
+
+                window.open(link, '_blank');
+            });
+
+            $('#generate-gc-to-pdf-btn').on('click', function() {
+                var selectedStatus = $("#filterByStatus").val();
+                var selectedDocType = $("#filterByDocType").val();
+                var searchValue = $("#search-input").val();
+
+                var encodedStatus = encodeURIComponent(selectedStatus);
+                var encodedDocType = encodeURIComponent(selectedDocType);
+                var encodedSearchValue = encodeURIComponent(searchValue);
+
+                var link = "tables/guidance/counseling_reports.php?status=" + encodedStatus + "&doc_type=" + encodedDocType + "&search=" + encodedSearchValue;
+                
+                window.open(link, '_blank');
+            });
+
+            $('#generate-gc-to-csv-btn').on('click', function() {
+                var selectedStatus = $("#filterByStatus").val();
+                var selectedDocType = $("#filterByDocType").val();
+                var searchValue = $("#search-input").val();
+
+                var encodedStatus = encodeURIComponent(selectedStatus);
+                var encodedDocType = encodeURIComponent(selectedDocType);
+                var encodedSearchValue = encodeURIComponent(searchValue);
+
+                var link = "tables/guidance/counseling_reports_csv.php?status=" + encodedStatus + "&doc_type=" + encodedDocType + "&search=" + encodedSearchValue;
+                
+                window.open(link, '_blank');
+            });
+
+
             $('.sortable-header').on('click', function() {
                 var column = $(this).data('column');
                 var order = $(this).data('order');
